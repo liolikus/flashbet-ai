@@ -1,0 +1,32 @@
+[package]
+name = "flashbet-market"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+async-graphql.workspace = true
+linera-sdk.workspace = true
+futures.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+async-trait.workspace = true
+flashbet-shared = { path = "../flashbet-shared" }
+
+[dev-dependencies]
+linera-sdk = { version = "0.15.3", features = ["test", "wasmer"] }
+tokio = { version = "1.40", features = ["rt", "sync"] }
+
+[[bin]]
+name = "flashbet_market_contract"
+path = "src/contract.rs"
+
+[[bin]]
+name = "flashbet_market_service"
+path = "src/service.rs"
+
+[profile.release]
+debug = true
+lto = true
+opt-level = 'z'
+strip = 'debuginfo'

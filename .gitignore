@@ -114,7 +114,16 @@ pnpm-lock.yaml
 *.old
 *~
 
-# Documentation builds (keep source .md files)
+# Documentation - hide internal docs, keep only standard public files
+*.md
+CLAUDE.md
+!README.md
+!LICENSE.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+
+# Documentation builds
 docs/_build/
 site/
 

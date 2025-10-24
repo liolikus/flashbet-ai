@@ -10,12 +10,18 @@ This is a planning and documentation repository for the **Linera Buildathon** (O
 
 **Consensus Validation**: Architecture validated by Gemini 2.5 Pro & Flash (8/10 confidence) - technically sound and optimally suited for Linera, but requires aggressive scope management for 18-day timeline.
 
+**Rust Toolchain**: The project uses Rust 1.86.0 with wasm32-unknown-unknown target (configured in `rust-toolchain.toml`).
+
+**Implementation Checklist**: See [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) for detailed phase-by-phase tasks and acceptance criteria.
+
 ### Repository Structure
 
 ```
 flashbet-ai/
 ├── LINERA_MAIN_DOCS.md          # Main documentation index (START HERE)
 ├── CLAUDE.md                     # This file - project instructions
+├── IMPLEMENTATION_CHECKLIST.md   # Detailed phase-by-phase task checklist
+├── rust-toolchain.toml           # Rust toolchain configuration (1.86.0)
 ├── linera-integration-docs/      # Comprehensive Linera documentation
 │   ├── Wallets.md               # Wallet & chain management (902 lines)
 │   ├── Applications.md          # Application development (705 lines)
@@ -26,7 +32,19 @@ flashbet-ai/
 │   ├── Chain-ownership.md       # Ownership & permissions (243 lines)
 │   └── Design-Patterns.md       # Best practices & patterns (309 lines)
 ├── ORACLE_INTEGRATION_SOLUTION.md # Oracle implementation guide
-└── [Project-specific docs...]
+├── exec_summary.md               # Consensus-validated plan
+├── why-build-on-linera.md        # Technical rationale
+├── hackathon.md                  # Buildathon details
+└── [Implementation will be added in Phase 0+]
+
+PLANNED STRUCTURE (to be created):
+├── flashbet-user/                # User Chain contract (Rust)
+├── flashbet-market/              # Market Chain contract (Rust)
+├── flashbet-oracle/              # Oracle Chain contract (Rust)
+├── oracle-worker/                # Off-chain Python oracle service
+├── scripts/                      # Deployment and demo scripts
+├── tests/integration/            # Integration test scripts
+└── frontend/ (optional)          # React + TypeScript UI
 ```
 
 ## 📚 Linera Technical Documentation
@@ -546,6 +564,31 @@ Display total cycle time prominently
 
 ## Development Guidelines
 
+### Code Organization Conventions
+
+**When Creating New Linera Applications:**
+1. Each application will have a `src/` directory with:
+   - `contract.rs` - Contract logic (operations, messages, state mutations)
+   - `service.rs` - Service logic (GraphQL queries, read-only operations)
+   - `state.rs` - State structure using Linera Views
+   - `lib.rs` - Shared types, enums, and serialization
+2. Use `#[derive(RootView)]` for top-level state structs
+3. All cross-chain message types must derive `Serialize` and `Deserialize`
+4. Use `thiserror` for custom error types
+5. Add comprehensive doc comments for public APIs
+
+**Naming Conventions:**
+- Operations: Imperative verbs (e.g., `PlaceBet`, `CreateMarket`, `PublishResult`)
+- Messages: Noun phrases or past tense (e.g., `BetPlaced`, `Payout`, `EventResolution`)
+- Events: Past tense (e.g., `BetPlaced`, `MarketResolved`, `PayoutReceived`)
+- State views: Descriptive nouns (e.g., `balance`, `active_bets`, `event_results`)
+
+**Error Handling:**
+- Use `Result<T, ContractError>` for all fallible operations
+- Never use `unwrap()` in production code (use `expect()` with descriptive messages only when guaranteed safe)
+- Prefer `checked_add()` and `checked_sub()` for arithmetic operations
+- Return meaningful error messages for debugging
+
 ### Linera-Specific Patterns
 
 **Operations vs Messages**:
@@ -676,6 +719,97 @@ linera publish-and-create <bytecode> <service>
 **References**:
 - [Applications.md - Deployment](linera-integration-docs/Applications.md)
 - [Wallets.md - Common Commands](linera-integration-docs/Wallets.md)
+
+---
+
+## Essential Command Reference
+
+### Environment Setup Commands
+
+```bash
+# Install wasm target (required for Linera contracts)
+rustup target add wasm32-unknown-unknown
+
+# Start local Linera testnet
+linera net up --validators 4 --shards 1
+
+# Start testnet in testing mode
+linera net up --validators 4 --shards 1 --testing
+
+# Stop local testnet
+linera net down
+```
+
+### Project Development Commands
+
+```bash
+# Create new Linera application
+linera project new <app-name>
+
+# Build contracts for deployment
+cargo build --release --target wasm32-unknown-unknown
+
+# Run unit tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Lint code
+cargo clippy --all-targets --all-features -- -D warnings
+
+# Format code
+cargo fmt --all
+```
+
+### Chain Management Commands
+
+```bash
+# Deploy application to chain
+linera publish-and-create \
+    target/wasm32-unknown-unknown/release/<app>_{contract,service}.wasm
+
+# Query application state
+linera query-application <chain-id> <app-id>
+
+# Execute operation on application
+linera query-application <chain-id> <app-id> \
+    --operation '<operation-json>'
+
+# List chains in wallet
+linera wallet show
+
+# Check chain balance
+linera query-balance <chain-id>
+```
+
+### GraphQL Service Commands
+
+```bash
+# Start GraphQL service for a chain
+linera service --port 8080
+
+# Query GraphQL endpoint
+curl -X POST http://localhost:8080/graphql \
+    -H "Content-Type: application/json" \
+    -d '{"query": "{ ... }"}'
+```
+
+### Testing & Debugging Commands
+
+```bash
+# Run integration tests
+./tests/integration/full_betting_cycle.sh
+
+# Watch test output
+cargo watch -x test
+
+# Run specific test
+cargo test <test-name>
+
+# Run tests with backtrace
+RUST_BACKTRACE=1 cargo test
+```
 
 ---
 
