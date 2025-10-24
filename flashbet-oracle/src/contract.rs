@@ -2,13 +2,13 @@
 
 mod state;
 
+use flashbet_oracle::{InstantiationArgument, Message, Operation};
+use flashbet_shared::OracleEvent;
 use linera_sdk::{
-    linera_base_types::WithContractAbi,
+    linera_base_types::{StreamName, WithContractAbi},
     views::{RootView, View},
     Contract, ContractRuntime,
 };
-
-use flashbet_oracle::Operation;
 
 use self::state::FlashbetOracleState;
 
@@ -24,10 +24,10 @@ impl WithContractAbi for FlashbetOracleContract {
 }
 
 impl Contract for FlashbetOracleContract {
-    type Message = ();
+    type Message = Message;
     type Parameters = ();
-    type InstantiationArgument = u64;
-    type EventValue = ();
+    type InstantiationArgument = InstantiationArgument;
+    type EventValue = OracleEvent;
 
     async fn load(runtime: ContractRuntime<Self>) -> Self {
         let state = FlashbetOracleState::load(runtime.root_view_storage_context())
@@ -37,20 +37,112 @@ impl Contract for FlashbetOracleContract {
     }
 
     async fn instantiate(&mut self, argument: Self::InstantiationArgument) {
-        // validate that the application parameters were configured correctly.
+        // Validate application parameters
         self.runtime.application_parameters();
-        self.state.value.set(argument);
+
+        // Set the chain creator as owner
+        let owner = self.runtime.authenticated_signer().expect("Missing signature");
+        self.state.owner.set(Some(owner));
+
+        // Authorize initial oracles
+        for oracle in argument.initial_oracles {
+            self.state
+                .authorized_oracles
+                .insert(&oracle)
+                .expect("Failed to authorize initial oracle");
+        }
+
+        // Initialize result count
+        self.state.result_count.set(0);
     }
 
     async fn execute_operation(&mut self, operation: Self::Operation) -> Self::Response {
         match operation {
-            Operation::Increment { value } => {
-                self.state.value.set(self.state.value.get() + value);
+            Operation::PublishResult { result } => {
+                // 1. Validate caller is authorized oracle
+                let signer = self
+                    .runtime
+                    .authenticated_signer()
+                    .expect("Must be signed operation");
+
+                assert!(
+                    self.state.is_authorized(&signer).await,
+                    "Unauthorized oracle: {:?}",
+                    signer
+                );
+
+                // 2. Check if this event already has a result (prevent duplicates)
+                let existing = self
+                    .state
+                    .event_results
+                    .get(&result.event_id)
+                    .await
+                    .ok()
+                    .flatten();
+
+                assert!(
+                    existing.is_none(),
+                    "Result already published for event: {}",
+                    result.event_id.0
+                );
+
+                // 3. Store the result
+                self.state.publish_result(result.clone()).await;
+
+                // 4. Emit event for subscribers (Market Chains)
+                self.runtime.emit(
+                    StreamName::from(b"oracle_results".to_vec()),
+                    &OracleEvent::ResultPublished {
+                        result: result.clone(),
+                    },
+                );
+            }
+
+            Operation::AuthorizeOracle { oracle } => {
+                // Only owner can authorize oracles
+                let signer = self
+                    .runtime
+                    .authenticated_signer()
+                    .expect("Must be signed operation");
+
+                let owner = self.state.owner.get().expect("Owner not set");
+                assert!(signer == owner, "Only owner can authorize oracles");
+
+                // Add to authorized set
+                self.state
+                    .authorized_oracles
+                    .insert(&oracle)
+                    .expect("Failed to authorize oracle");
+
+                // Emit event
+                self.runtime.emit(
+                    StreamName::from(b"oracle_events".to_vec()),
+                    &OracleEvent::OracleAuthorized { oracle },
+                );
+            }
+
+            Operation::RevokeOracle { oracle } => {
+                // Only owner can revoke oracles
+                let signer = self
+                    .runtime
+                    .authenticated_signer()
+                    .expect("Must be signed operation");
+
+                let owner = self.state.owner.get().expect("Owner not set");
+                assert!(signer == owner, "Only owner can revoke oracles");
+
+                // Remove from authorized set
+                self.state
+                    .authorized_oracles
+                    .remove(&oracle)
+                    .expect("Failed to revoke oracle");
             }
         }
     }
 
-    async fn execute_message(&mut self, _message: Self::Message) {}
+    async fn execute_message(&mut self, _message: Self::Message) {
+        // Wave 1: No messages received
+    }
 
     async fn store(mut self) {
         self.state.save().await.expect("Failed to save state");

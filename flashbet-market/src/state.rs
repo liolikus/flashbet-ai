@@ -12,10 +12,10 @@ use linera_sdk::{
 #[view(context = ViewStorageContext)]
 pub struct FlashbetMarketState {
     /// Market information (event details, teams, etc.)
-    pub info: RegisterView<MarketInfo>,
+    pub info: RegisterView<Option<MarketInfo>>,
 
     /// Current market status
-    pub status: RegisterView<MarketStatus>,
+    pub status: RegisterView<Option<MarketStatus>>,
 
     /// Betting pools for each outcome
     /// Maps Outcome -> Total Amount bet on that outcome
@@ -29,7 +29,7 @@ pub struct FlashbetMarketState {
     pub total_pool: RegisterView<Amount>,
 
     /// Oracle chain ID (for subscribing to results)
-    pub oracle_chain: RegisterView<ChainId>,
+    pub oracle_chain: RegisterView<Option<ChainId>>,
 
     /// Counter for total number of bets
     pub bet_count: RegisterView<u64>,
@@ -37,13 +37,13 @@ pub struct FlashbetMarketState {
 
 impl FlashbetMarketState {
     /// Get current market status
-    pub fn get_status(&self) -> &MarketStatus {
-        self.status.get()
+    pub fn get_status(&self) -> MarketStatus {
+        self.status.get().clone().unwrap_or(MarketStatus::Open)
     }
 
     /// Check if market is open for betting
     pub fn is_open(&self) -> bool {
-        matches!(self.status.get(), MarketStatus::Open)
+        matches!(self.status.get(), Some(MarketStatus::Open))
     }
 
     /// Get total pool amount
@@ -72,7 +72,7 @@ impl FlashbetMarketState {
             .flatten()
             .unwrap_or(Amount::ZERO);
         let new_pool = current_pool
-            .checked_add(bet.amount)
+            .try_add(bet.amount)
             .expect("Pool overflow");
         self.pools
             .insert(&bet.outcome, new_pool)
@@ -80,11 +80,12 @@ impl FlashbetMarketState {
 
         // Update total pool
         let total = self.total_pool.get_mut();
-        *total = total.checked_add(bet.amount).expect("Total pool overflow");
+        *total = total.try_add(bet.amount).expect("Total pool overflow");
 
         // Store bet
+        let bet_id = bet.bet_id;
         self.bets
-            .insert(&bet.bet_id, bet)
+            .insert(&bet_id, bet)
             .expect("Failed to insert bet");
 
         // Increment bet count
@@ -94,17 +95,17 @@ impl FlashbetMarketState {
 
     /// Lock the market (no more bets accepted)
     pub fn lock_market(&mut self) {
-        *self.status.get_mut() = MarketStatus::Locked;
+        *self.status.get_mut() = Some(MarketStatus::Locked);
     }
 
     /// Resolve the market with winning outcome
     pub fn resolve_market(&mut self, winning_outcome: Outcome) {
-        *self.status.get_mut() = MarketStatus::Resolved(winning_outcome);
+        *self.status.get_mut() = Some(MarketStatus::Resolved(winning_outcome));
     }
 
     /// Cancel the market
     pub fn cancel_market(&mut self) {
-        *self.status.get_mut() = MarketStatus::Cancelled;
+        *self.status.get_mut() = Some(MarketStatus::Cancelled);
     }
 
     /// Get all bets for a specific outcome
@@ -113,7 +114,7 @@ impl FlashbetMarketState {
         self.bets
             .for_each_index_value(|_id, bet| {
                 if &bet.outcome == outcome {
-                    bets.push(bet);
+                    bets.push(bet.into_owned());
                 }
                 Ok(())
             })
@@ -150,6 +151,7 @@ impl FlashbetMarketState {
         let numerator = bet_amount.saturating_mul(total_pool_u128);
         let payout_u128 = numerator / winning_pool_u128;
 
-        Amount::try_from(payout_u128).unwrap_or(Amount::ZERO)
+        // Convert to Amount (from_attos takes u128)
+        Amount::from_attos(payout_u128)
     }
 }

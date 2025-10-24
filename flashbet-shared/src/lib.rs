@@ -156,7 +156,8 @@ impl From<MarketTypeInput> for MarketType {
 // ============================================================================
 
 /// Score representation for sports events
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, SimpleObject, InputObject)]
+#[graphql(input_name = "ScoreInput")]
 pub struct Score {
     /// Home team score
     pub home: u32,
@@ -201,7 +202,8 @@ pub struct Bet {
 }
 
 /// Result from oracle for a sports event
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject, InputObject)]
+#[graphql(input_name = "EventResultInput")]
 pub struct EventResult {
     /// Event identifier matching MarketInfo
     pub event_id: EventId,
@@ -295,6 +297,13 @@ pub enum MarketEvent {
     },
     /// Market was locked (no more bets)
     MarketLocked { market_id: MarketId },
+    /// Payout distributed to winner
+    PayoutDistributed {
+        market_id: MarketId,
+        bet_id: u64,
+        user_chain: ChainId,
+        amount: Amount,
+    },
 }
 
 /// Events emitted by the Oracle Chain

@@ -5,12 +5,14 @@ mod state;
 use std::sync::Arc;
 
 use async_graphql::{EmptySubscription, Object, Schema};
-use linera_sdk::{
-    graphql::GraphQLMutationRoot, linera_base_types::WithServiceAbi, views::View, Service,
-    ServiceRuntime,
-};
-
 use flashbet_oracle::Operation;
+use flashbet_shared::{EventId, EventResult, Outcome};
+use linera_sdk::{
+    graphql::GraphQLMutationRoot,
+    linera_base_types::{AccountOwner, Timestamp, WithServiceAbi},
+    views::View,
+    Service, ServiceRuntime,
+};
 
 use self::state::FlashbetOracleState;
 
@@ -39,9 +41,37 @@ impl Service for FlashbetOracleService {
     }
 
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
+        let owner = self.state.owner.get().as_ref().expect("Owner not set").clone();
+        let result_count = *self.state.result_count.get();
+
+        // Get all event results
+        let mut all_results = Vec::new();
+        self.state
+            .event_results
+            .for_each_index_value(|_id, result| {
+                all_results.push(result.into_owned());
+                Ok(())
+            })
+            .await
+            .expect("Failed to iterate results");
+
+        // Get all authorized oracles
+        let mut authorized_oracles = Vec::new();
+        self.state
+            .authorized_oracles
+            .for_each_index(|oracle| {
+                authorized_oracles.push(oracle.clone());
+                Ok(())
+            })
+            .await
+            .expect("Failed to iterate oracles");
+
         Schema::build(
             QueryRoot {
-                value: *self.state.value.get(),
+                owner,
+                result_count,
+                all_results,
+                authorized_oracles,
             },
             Operation::mutation_root(self.runtime.clone()),
             EmptySubscription,
@@ -53,13 +83,86 @@ impl Service for FlashbetOracleService {
 }
 
 struct QueryRoot {
-    value: u64,
+    owner: AccountOwner,
+    result_count: u64,
+    all_results: Vec<EventResult>,
+    authorized_oracles: Vec<AccountOwner>,
 }
 
 #[Object]
 impl QueryRoot {
-    async fn value(&self) -> &u64 {
-        &self.value
+    /// Get chain owner address
+    async fn owner(&self) -> String {
+        format!("{:?}", self.owner)
+    }
+
+    /// Get total number of published results
+    async fn result_count(&self) -> u64 {
+        self.result_count
+    }
+
+    /// Get all published event results
+    async fn all_results(&self) -> &Vec<EventResult> {
+        &self.all_results
+    }
+
+    /// Get list of authorized oracle addresses
+    async fn authorized_oracles(&self) -> Vec<String> {
+        self.authorized_oracles
+            .iter()
+            .map(|o| format!("{:?}", o))
+            .collect()
+    }
+
+    /// Check if an address is an authorized oracle
+    async fn is_authorized(&self, oracle: String) -> bool {
+        // For Wave 1, simple string comparison
+        self.authorized_oracles
+            .iter()
+            .any(|o| format!("{:?}", o) == oracle)
+    }
+
+    /// Get result for a specific event ID
+    async fn get_result(&self, event_id: String) -> Option<EventResultView> {
+        let search_id = EventId::new(event_id);
+        self.all_results
+            .iter()
+            .find(|r| r.event_id == search_id)
+            .map(|r| EventResultView {
+                event_id: r.event_id.0.clone(),
+                outcome: format!("{:?}", r.outcome),
+                score_home: r.score.as_ref().map(|s| s.home),
+                score_away: r.score.as_ref().map(|s| s.away),
+                timestamp: r.timestamp.micros(),
+            })
+    }
+}
+
+/// GraphQL-friendly view of EventResult
+struct EventResultView {
+    event_id: String,
+    outcome: String,
+    score_home: Option<u32>,
+    score_away: Option<u32>,
+    timestamp: u64,
+}
+
+#[Object]
+impl EventResultView {
+    async fn event_id(&self) -> &String {
+        &self.event_id
+    }
+    async fn outcome(&self) -> &String {
+        &self.outcome
+    }
+    async fn score_home(&self) -> Option<u32> {
+        self.score_home
+    }
+    async fn score_away(&self) -> Option<u32> {
+        self.score_away
+    }
+    async fn timestamp(&self) -> u64 {
+        self.timestamp
     }
 }
 

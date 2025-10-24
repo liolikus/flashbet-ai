@@ -41,7 +41,9 @@ impl Service for FlashbetMarketService {
     }
 
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
-        let info = self.state.info.get().clone();
+        let info = self.state.info.get()
+            .clone()
+            .expect("Market not initialized - call CreateMarket operation first");
         let status = self.state.get_status().clone();
         let total_pool = self.state.get_total_pool();
 
@@ -96,14 +98,39 @@ struct QueryRoot {
 
 #[Object]
 impl QueryRoot {
-    /// Get market information (event, teams, etc.)
-    async fn market_info(&self) -> &MarketInfo {
-        &self.info
+    /// Get event ID
+    async fn event_id(&self) -> String {
+        self.info.event_id.0.clone()
     }
 
-    /// Get current market status
-    async fn status(&self) -> &MarketStatus {
-        &self.status
+    /// Get market description
+    async fn description(&self) -> String {
+        self.info.description.clone()
+    }
+
+    /// Get home team name
+    async fn home_team(&self) -> String {
+        self.info.home_team.clone()
+    }
+
+    /// Get away team name
+    async fn away_team(&self) -> String {
+        self.info.away_team.clone()
+    }
+
+    /// Get event time (as microseconds since epoch)
+    async fn event_time(&self) -> u64 {
+        self.info.event_time.micros()
+    }
+
+    /// Get current market status (as string for now)
+    async fn status(&self) -> String {
+        format!("{:?}", self.status)
+    }
+
+    /// Check if market is resolved
+    async fn is_resolved(&self) -> bool {
+        matches!(self.status, MarketStatus::Resolved(_))
     }
 
     /// Check if market is open for betting

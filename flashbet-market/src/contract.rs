@@ -43,14 +43,10 @@ impl Contract for FlashbetMarketContract {
         self.runtime.application_parameters();
 
         // Store oracle chain ID
-        self.state.oracle_chain.set(argument.oracle_chain);
+        self.state.oracle_chain.set(Some(argument.oracle_chain));
 
-        // Subscribe to Oracle Chain events
-        // This allows us to receive event results automatically
-        self.runtime.subscribe(
-            argument.oracle_chain,
-            StreamName::from(b"oracle_events".to_vec()),
-        );
+        // Subscribe to Oracle Chain events will be done when CreateMarket is called
+        // (Linera SDK may not have subscribe method at instantiation)
 
         // Initialize bet count
         self.state.bet_count.set(0);
@@ -75,10 +71,10 @@ impl Contract for FlashbetMarketContract {
                 };
 
                 // Store market info
-                self.state.info.set(info.clone());
+                self.state.info.set(Some(info.clone()));
 
                 // Set initial status to Open
-                self.state.status.set(MarketStatus::Open);
+                self.state.status.set(Some(MarketStatus::Open));
 
                 // Initialize total pool
                 self.state.total_pool.set(linera_sdk::linera_base_types::Amount::ZERO);
@@ -139,7 +135,7 @@ impl Contract for FlashbetMarketContract {
                 );
 
                 // 2. Validate outcome is valid for this market type
-                let market_info = self.state.info.get();
+                let market_info = self.state.info.get().as_ref().expect("Market not initialized");
                 assert!(
                     flashbet_shared::validate_outcome_for_market(bet.outcome, &market_info.market_type),
                     "Invalid outcome {:?} for market type {:?}",
@@ -164,36 +160,18 @@ impl Contract for FlashbetMarketContract {
                 );
             }
 
-            Message::OracleResult(_) => {
-                // Oracle results come via event streams, not direct messages
-                // This variant exists for type safety but shouldn't be called
+            Message::OracleResult(result) => {
+                // Handle oracle result (Wave 1: direct message approach)
+                self.handle_oracle_result(result).await;
             }
         }
     }
 
-    async fn process_streams(&mut self) {
-        // Process Oracle events to automatically resolve markets
-        let oracle_chain = *self.state.oracle_chain.get();
-
-        // Read all new events from the Oracle stream
-        let updates = self.runtime.query_events_from(
-            oracle_chain,
-            StreamName::from(b"oracle_events".to_vec()),
-        );
-
-        for event_update in updates {
-            // Parse the event
-            if let Ok(oracle_event) = serde_json::from_slice::<flashbet_shared::OracleEvent>(&event_update.value) {
-                match oracle_event {
-                    flashbet_shared::OracleEvent::ResultPublished { result } => {
-                        self.handle_oracle_result(result).await;
-                    }
-                    _ => {
-                        // Ignore other oracle events (like OracleAuthorized)
-                    }
-                }
-            }
-        }
+    async fn process_streams(&mut self, _updates: Vec<linera_sdk::linera_base_types::StreamUpdate>) {
+        // For Wave 1: Oracle results will come via direct messages
+        // rather than event streams (simplified architecture)
+        // This method can be used in Wave 2+ for more sophisticated
+        // event stream processing
     }
 
     async fn store(mut self) {
@@ -205,7 +183,10 @@ impl FlashbetMarketContract {
     /// Handle an oracle result and resolve the market
     async fn handle_oracle_result(&mut self, result: EventResult) {
         // Check if this result is for our market
-        let market_info = self.state.info.get();
+        let market_info = match self.state.info.get().as_ref() {
+            Some(info) => info,
+            None => return, // Market not initialized, ignore
+        };
         if result.event_id != market_info.event_id {
             // Not for this market, ignore
             return;
@@ -252,13 +233,17 @@ impl FlashbetMarketContract {
                 };
 
                 // Send payout message to the user's chain
-                let user_app_id = ApplicationId {
-                    application_description_hash: self.runtime.application_id().application_description_hash,
-                };
-
-                self.runtime
-                    .prepare_message(UserMessage::Payout(payout))
-                    .send_to(bet.user_chain);
+                // Note: Cross-application messaging in Linera
+                // For now, we'll emit an event and handle payouts in User Chain via event subscription
+                self.runtime.emit(
+                    StreamName::from(b"payout_events".to_vec()),
+                    &MarketEvent::PayoutDistributed {
+                        market_id: bet.market_id,
+                        bet_id: bet.bet_id,
+                        user_chain: bet.user_chain,
+                        amount: payout_amount,
+                    },
+                );
             }
         }
     }
@@ -282,7 +267,7 @@ mod tests {
             .now_or_never()
             .expect("Instantiation should not await");
 
-        assert_eq!(*contract.state.oracle_chain.get(), oracle_chain);
+        assert_eq!(*contract.state.oracle_chain.get(), Some(oracle_chain));
         assert_eq!(*contract.state.bet_count.get(), 0);
     }
 

@@ -19,7 +19,7 @@ pub struct FlashbetOracleState {
     pub authorized_oracles: SetView<AccountOwner>,
 
     /// Oracle chain owner (can authorize new oracles)
-    pub owner: RegisterView<AccountOwner>,
+    pub owner: RegisterView<Option<AccountOwner>>,
 
     /// Counter for total results published
     pub result_count: RegisterView<u64>,
@@ -51,8 +51,9 @@ impl FlashbetOracleState {
 
     /// Publish a new result
     pub async fn publish_result(&mut self, result: EventResult) {
+        let event_id = result.event_id.clone();
         self.event_results
-            .insert(&result.event_id, result)
+            .insert(&event_id, result)
             .expect("Failed to insert result");
 
         let count = self.result_count.get_mut();
@@ -74,12 +75,12 @@ impl FlashbetOracleState {
     }
 
     /// Get the owner
-    pub fn get_owner(&self) -> &AccountOwner {
-        self.owner.get()
+    pub fn get_owner(&self) -> Option<&AccountOwner> {
+        self.owner.get().as_ref()
     }
 
     /// Check if an account is the owner
     pub fn is_owner(&self, account: &AccountOwner) -> bool {
-        self.owner.get() == account
+        self.owner.get().as_ref() == Some(account)
     }
 }
