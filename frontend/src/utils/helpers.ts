@@ -2,28 +2,58 @@ import type { Amount, OddsCalculation } from '../types';
 import { Outcome } from '../types';
 
 /**
+ * Safely convert Amount to BigInt, handling edge cases
+ */
+function toBigInt(amount: Amount): bigint {
+  if (!amount || amount === '0' || amount === '0.') {
+    return BigInt(0);
+  }
+  // Remove trailing decimal point and any existing decimals
+  const cleanAmount = amount.replace(/\.$/, '').split('.')[0];
+  return BigInt(cleanAmount || '0');
+}
+
+/**
  * Convert Amount (string representing u128) to human-readable number
  */
 export function formatAmount(amount: Amount): string {
-  const value = BigInt(amount);
-  // Assuming 18 decimals (like ETH)
-  const divisor = BigInt(10 ** 18);
-  const whole = value / divisor;
-  const fraction = value % divisor;
-
-  if (fraction === BigInt(0)) {
-    return whole.toString();
+  // Handle empty or invalid amounts
+  if (!amount || amount === '0' || amount === '0.') {
+    return '0';
   }
 
-  // Show up to 4 decimal places
-  const fractionStr = fraction.toString().padStart(18, '0');
-  const trimmedFraction = fractionStr.slice(0, 4).replace(/0+$/, '');
+  // Remove trailing decimal point if present
+  const cleanAmount = amount.replace(/\.$/, '');
 
-  if (trimmedFraction === '') {
-    return whole.toString();
+  // If it's already a decimal number, just return it
+  if (cleanAmount.includes('.')) {
+    return parseFloat(cleanAmount).toString();
   }
 
-  return `${whole}.${trimmedFraction}`;
+  try {
+    const value = BigInt(cleanAmount);
+    // Assuming 18 decimals (like ETH)
+    const divisor = BigInt(10 ** 18);
+    const whole = value / divisor;
+    const fraction = value % divisor;
+
+    if (fraction === BigInt(0)) {
+      return whole.toString();
+    }
+
+    // Show up to 4 decimal places
+    const fractionStr = fraction.toString().padStart(18, '0');
+    const trimmedFraction = fractionStr.slice(0, 4).replace(/0+$/, '');
+
+    if (trimmedFraction === '') {
+      return whole.toString();
+    }
+
+    return `${whole}.${trimmedFraction}`;
+  } catch (error) {
+    console.error('Failed to format amount:', amount, error);
+    return cleanAmount;
+  }
 }
 
 /**
@@ -44,7 +74,7 @@ export function calculateOdds(
   pools: Record<Outcome, Amount>,
   totalPool: Amount
 ): Record<Outcome, number> {
-  const total = BigInt(totalPool);
+  const total = toBigInt(totalPool);
 
   if (total === BigInt(0)) {
     return {
@@ -57,7 +87,7 @@ export function calculateOdds(
   const odds: Record<Outcome, number> = {} as Record<Outcome, number>;
 
   for (const outcome of Object.values(Outcome)) {
-    const pool = BigInt(pools[outcome] || '0');
+    const pool = toBigInt(pools[outcome] || '0');
 
     if (pool === BigInt(0)) {
       odds[outcome] = parseFloat(formatAmount(totalPool)) + 1;
@@ -78,9 +108,9 @@ export function calculatePayout(
   outcomePool: Amount,
   totalPool: Amount
 ): OddsCalculation {
-  const bet = BigInt(betAmount);
-  const pool = BigInt(outcomePool);
-  const total = BigInt(totalPool);
+  const bet = toBigInt(betAmount);
+  const pool = toBigInt(outcomePool);
+  const total = toBigInt(totalPool);
 
   if (pool === BigInt(0) || total === BigInt(0)) {
     return {

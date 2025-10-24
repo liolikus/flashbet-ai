@@ -1,58 +1,89 @@
-import { useQuery, useMutation } from '@apollo/client/react';
-import { gql } from '@apollo/client';
+import { useState, useEffect } from 'react';
 import MarketCard from './MarketCard';
 import type { MarketState, Outcome } from '../types';
 import { parseAmount } from '../utils/helpers';
 import { APP_IDS } from '../config/apollo';
 
-const GET_MARKET_STATE = gql`
-  query GetMarketState($chainId: ID!, $appId: ID!) {
-    applications(chainId: $chainId) {
-      entry(key: $appId) {
-        value
-      }
-    }
-  }
-`;
-
-const PLACE_BET_MUTATION = gql`
-  mutation PlaceBet(
-    $chainId: ID!
-    $marketChain: String!
-    $marketId: String!
-    $outcome: String!
-    $amount: String!
-  ) {
-    executeOperation(
-      chainId: $chainId
-      operation: {
-        PlaceBet: {
-          marketChain: $marketChain
-          marketId: $marketId
-          outcome: $outcome
-          amount: $amount
-        }
-      }
-    ) {
-      hash
-    }
-  }
-`;
+const BASE_URL = 'http://localhost:8080';
 
 export default function MarketsList() {
-  const { data, loading, error, refetch } = useQuery(GET_MARKET_STATE, {
-    variables: {
-      chainId: APP_IDS.CHAIN,
-      appId: APP_IDS.MARKET,
-    },
-    pollInterval: 3000, // Poll every 3 seconds
-  });
+  const [market, setMarket] = useState<MarketState | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [placeBet] = useMutation(PLACE_BET_MUTATION, {
-    onCompleted: () => {
-      refetch();
-    },
-  });
+  const fetchMarket = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.MARKET}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `{
+              eventId
+              description
+              homeTeam
+              awayTeam
+              eventTime
+              status
+              isResolved
+              isOpen
+              totalPool
+              homePool
+              awayPool
+              drawPool
+              betCount
+              homeOdds
+              awayOdds
+              drawOdds
+            }`,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log('Market data:', data);
+
+      if (data.data) {
+        // Transform flat data to MarketState structure
+        const rawData = data.data;
+        const marketState: MarketState = {
+          info: {
+            marketId: rawData.eventId || '0',
+            eventId: rawData.eventId || '',
+            description: rawData.description || 'Unknown Market',
+            closeTime: rawData.eventTime || 0,
+            eventTime: rawData.eventTime || 0,
+          },
+          status: rawData.status || 'Open',
+          pools: {
+            Home: rawData.homePool || '0',
+            Away: rawData.awayPool || '0',
+            Draw: rawData.drawPool || '0',
+          },
+          totalPool: rawData.totalPool || '0',
+          betCount: rawData.betCount || 0,
+          winningOutcome: rawData.isResolved ? undefined : undefined, // TODO: Add winningOutcome to schema
+        };
+        setMarket(marketState);
+      } else if (data.errors) {
+        setError(data.errors[0]?.message || 'Failed to load market');
+      }
+    } catch (err) {
+      console.error('Failed to fetch market:', err);
+      setError('Failed to connect to GraphQL service');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMarket();
+    const interval = setInterval(fetchMarket, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handlePlaceBet = async (
     marketId: string,
@@ -60,22 +91,39 @@ export default function MarketsList() {
     amount: string
   ) => {
     try {
-      await placeBet({
-        variables: {
-          chainId: APP_IDS.CHAIN,
-          marketChain: APP_IDS.CHAIN,
-          marketId,
-          outcome,
-          amount: parseAmount(amount),
-        },
-      });
+      const response = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `mutation {
+              placeBet(
+                marketChain: "${APP_IDS.CHAIN}"
+                marketId: ${marketId}
+                outcome: ${outcome.toUpperCase()}
+                amount: "${parseAmount(amount)}"
+              )
+            }`,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.errors) {
+        console.error('Bet placement failed:', data.errors);
+        throw new Error(data.errors[0]?.message || 'Failed to place bet');
+      }
+
+      // Refresh market data
+      await fetchMarket();
     } catch (error) {
       console.error('Failed to place bet:', error);
       throw error;
     }
   };
 
-  if (loading) {
+  if (loading && !market) {
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
@@ -90,17 +138,15 @@ export default function MarketsList() {
   if (error) {
     return (
       <div className="card bg-red-50 border-red-200">
-        <p className="text-red-600">Failed to load markets: {error.message}</p>
-        <button onClick={() => refetch()} className="btn-secondary mt-4">
+        <p className="text-red-600">Failed to load markets: {error}</p>
+        <button onClick={fetchMarket} className="btn-secondary mt-4">
           Retry
         </button>
       </div>
     );
   }
 
-  const marketData = (data as any)?.applications?.entry?.value;
-
-  if (!marketData) {
+  if (!market) {
     return (
       <div className="card text-center py-8">
         <p className="text-gray-600 mb-4">No markets available yet</p>
@@ -111,24 +157,11 @@ export default function MarketsList() {
     );
   }
 
-  // Convert to MarketState type
-  const market: MarketState = {
-    info: marketData.info,
-    status: marketData.status,
-    pools: marketData.pools,
-    totalPool: marketData.totalPool,
-    betCount: marketData.betCount,
-    winningOutcome: marketData.winningOutcome,
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Active Markets</h2>
-        <button
-          onClick={() => refetch()}
-          className="btn-secondary text-sm"
-        >
+        <button onClick={fetchMarket} className="btn-secondary text-sm">
           Refresh
         </button>
       </div>

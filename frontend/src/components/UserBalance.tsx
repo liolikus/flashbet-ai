@@ -1,65 +1,71 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client/react';
-import { gql } from '@apollo/client';
+import { useState, useEffect } from 'react';
 import { formatAmount, parseAmount } from '../utils/helpers';
 import { APP_IDS } from '../config/apollo';
 
-const GET_BALANCE = gql`
-  query GetBalance($chainId: ID!) {
-    chain(chainId: $chainId) {
-      executionState {
-        system {
-          balance
-        }
-      }
-    }
-  }
-`;
-
-const DEPOSIT_MUTATION = gql`
-  mutation Deposit($chainId: ID!, $amount: String!) {
-    executeOperation(
-      chainId: $chainId
-      operation: {
-        Deposit: { amount: $amount }
-      }
-    ) {
-      hash
-    }
-  }
-`;
+const BASE_URL = 'http://localhost:8080';
 
 export default function UserBalance() {
+  const [balance, setBalance] = useState('0');
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [depositing, setDepositing] = useState(false);
 
-  const { data, loading, refetch } = useQuery(GET_BALANCE, {
-    variables: { chainId: APP_IDS.CHAIN },
-    pollInterval: 3000, // Poll every 3 seconds
-  });
+  const fetchBalance = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: '{ balance }' }),
+        }
+      );
+      const data = await response.json();
+      if (data.data?.balance) {
+        setBalance(data.data.balance);
+      }
+    } catch (error) {
+      console.error('Failed to fetch balance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [deposit, { loading: depositing }] = useMutation(DEPOSIT_MUTATION, {
-    onCompleted: () => {
-      setDepositAmount('');
-      setIsDepositOpen(false);
-      refetch();
-    },
-  });
-
-  const balance = (data as any)?.chain?.executionState?.system?.balance || '0';
+  useEffect(() => {
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleDeposit = async () => {
     if (!depositAmount || parseFloat(depositAmount) <= 0) return;
 
+    setDepositing(true);
     try {
-      await deposit({
-        variables: {
-          chainId: APP_IDS.CHAIN,
-          amount: parseAmount(depositAmount),
-        },
-      });
+      const response = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `mutation { deposit(amount: "${parseAmount(depositAmount)}") }`,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!data.errors) {
+        setDepositAmount('');
+        setIsDepositOpen(false);
+        await fetchBalance();
+      } else {
+        console.error('Deposit failed:', data.errors);
+      }
     } catch (error) {
       console.error('Deposit failed:', error);
+    } finally {
+      setDepositing(false);
     }
   };
 
@@ -80,7 +86,7 @@ export default function UserBalance() {
 
       {/* Balance Display */}
       <div className="mb-4">
-        {loading ? (
+        {loading && balance === '0' ? (
           <div className="animate-pulse">
             <div className="h-12 bg-gray-200 rounded"></div>
           </div>

@@ -1,44 +1,24 @@
-import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { createClient } from 'graphql-ws';
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
-// GraphQL endpoint from Linera service
-const HTTP_ENDPOINT = 'http://localhost:8080/graphql';
-const WS_ENDPOINT = 'ws://localhost:8080/ws';
+// Linera uses chain and application-specific endpoints
+// Format: http://localhost:8080/chains/{CHAIN_ID}/applications/{APP_ID}
+const BASE_URL = 'http://localhost:8080';
 
-// HTTP link for queries and mutations
+// HTTP link - will be overridden per query in components
 const httpLink = new HttpLink({
-  uri: HTTP_ENDPOINT,
+  uri: `${BASE_URL}/chains/PLACEHOLDER/applications/PLACEHOLDER`,
 });
-
-// WebSocket link for subscriptions
-const wsLink = new GraphQLWsLink(
-  createClient({
-    url: WS_ENDPOINT,
-  })
-);
-
-// Split traffic between HTTP and WebSocket based on operation type
-const splitLink = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === 'OperationDefinition' &&
-      definition.operation === 'subscription'
-    );
-  },
-  wsLink,
-  httpLink
-);
 
 // Create Apollo Client
 export const client = new ApolloClient({
-  link: splitLink,
+  link: httpLink,
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'network-only', // Always fetch fresh data
+    },
+    query: {
+      fetchPolicy: 'network-only',
     },
   },
 });
