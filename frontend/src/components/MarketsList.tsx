@@ -130,8 +130,8 @@ export default function MarketsList() {
       console.log('Step 2: Registering bet on Market chain...');
 
       // Build the Bet object matching Linera's Bet structure
-      // Note: betId and user will be assigned by User contract, but we need to construct it for Market
-      // For now, we'll let Market derive these from the incoming request
+      // Note: betId will be auto-incremented, but we pass 0 for initial bet
+      // user field must be AccountOwner (cryptographic address), not chain ID
       const marketResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
         {
@@ -141,9 +141,9 @@ export default function MarketsList() {
             query: `mutation {
               registerBet(
                 bet: {
-                  betId: 0
+                  betId: ${Date.now() % 1000000}
                   marketId: ${numericMarketId}
-                  user: "${APP_IDS.CHAIN}:0"
+                  user: "${APP_IDS.USER_ACCOUNT_OWNER}"
                   outcome: ${outcome.toUpperCase()}
                   amount: "${amountParsed}"
                   timestamp: ${Date.now() * 1000}

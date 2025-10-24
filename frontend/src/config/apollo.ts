@@ -31,4 +31,6 @@ export const APP_IDS = {
   ORACLE: '16f282df931295c6e6c1201444135ee11d26bcfdd003f1a7f38283cdc8ac96f9',
   MARKET: '22b417a675df8caa440161061a5a7209e1ae2c9e8a9b0f40de16d6756f8de993',
   USER: '60f252f3cdeeefcc0ad3160b4f010f22a6b3e8cf026c2876b3e2f86b91a7a1cb',
+  // AccountOwner for User Chain (Wave 1: hardcoded for demo)
+  USER_ACCOUNT_OWNER: '0xdbc3e7d07b2175fdd625e68d670d772a4d232b4b938c2803e743e1959daf4f3f',
 };
