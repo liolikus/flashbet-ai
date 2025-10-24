@@ -130,16 +130,3 @@ settings.local.json
 # Uncomment if needed:
 # generated/
 # __generated__/
-
-# Project documentation files (planning/local reference)
-CLAUDE.md
-IMPLEMENTATION_CHECKLIST.md
-LINERA_MAIN_DOCS.md
-ORACLE_INTEGRATION_SOLUTION.md
-context7.json
-exec_summary.md
-final_verdict.md
-hackathon.md
-linera-integration-docs/
-linera-prediction-markets.md
-why-build-on-linera.md
