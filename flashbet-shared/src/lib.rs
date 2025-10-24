@@ -183,7 +183,8 @@ pub struct MarketInfo {
 }
 
 /// A single bet record
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject, InputObject)]
+#[graphql(input_name = "BetInput")]
 pub struct Bet {
     /// Unique bet identifier
     pub bet_id: u64,
@@ -253,12 +254,12 @@ pub enum MarketMessage {
 /// Events emitted by the User Chain
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UserEvent {
-    /// User placed a bet
+    /// User placed a bet (includes full bet details for Market chain to process)
     BetPlaced {
-        bet_id: u64,
-        market_id: MarketId,
-        outcome: Outcome,
-        amount: Amount,
+        /// The Market chain this bet is for
+        market_chain: ChainId,
+        /// Full bet details
+        bet: Bet,
     },
     /// User received a payout
     PayoutReceived {

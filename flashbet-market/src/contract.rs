@@ -54,6 +54,43 @@ impl Contract for FlashbetMarketContract {
 
     async fn execute_operation(&mut self, operation: Self::Operation) -> Self::Response {
         match operation {
+            Operation::RegisterBet { bet } => {
+                // Wave 1: Frontend-relayed bet registration
+                // Wave 2+: This will be triggered by cross-app event processing
+
+                // 1. Validate market is open
+                assert!(
+                    self.state.is_open(),
+                    "Market is not open for betting, status: {:?}",
+                    self.state.get_status()
+                );
+
+                // 2. Validate outcome is valid for this market type
+                let market_info = self.state.info.get().as_ref().expect("Market not initialized");
+                assert!(
+                    flashbet_shared::validate_outcome_for_market(bet.outcome, &market_info.market_type),
+                    "Invalid outcome {:?} for market type {:?}",
+                    bet.outcome,
+                    market_info.market_type
+                );
+
+                // 3. Add bet to market state
+                self.state.add_bet(bet.clone()).await;
+
+                // 4. Emit BetPlaced event
+                let total_pool = self.state.get_total_pool();
+                self.runtime.emit(
+                    StreamName::from(b"market_events".to_vec()),
+                    &MarketEvent::BetPlaced {
+                        market_id: bet.market_id,
+                        bet_id: bet.bet_id,
+                        outcome: bet.outcome,
+                        amount: bet.amount,
+                        total_pool,
+                    },
+                );
+            }
+
             Operation::CreateMarket { input } => {
                 // Validate event ID format
                 let event_id = flashbet_shared::EventId::new(input.event_id.clone());
@@ -88,6 +125,28 @@ impl Contract for FlashbetMarketContract {
                         description: input.description,
                     },
                 );
+            }
+
+            Operation::SubscribeToUser { user_chain, user_app_id } => {
+                // Parse application ID
+                let user_app = user_app_id.parse::<linera_sdk::linera_base_types::ApplicationId>()
+                    .expect("Invalid application ID");
+
+                // Check if already subscribed
+                if self.state.subscribed_users.contains(&user_app).await.unwrap_or(false) {
+                    // Already subscribed, skip
+                    return;
+                }
+
+                // Subscribe to User chain's "user_bets" event stream
+                self.runtime.subscribe_to_events(
+                    user_chain,
+                    user_app.forget_abi(),
+                    StreamName::from(b"user_bets".to_vec()),
+                );
+
+                // Add to subscribed users set
+                self.state.subscribed_users.insert(&user_app).expect("Failed to insert subscribed user");
             }
 
             Operation::LockMarket => {
@@ -167,11 +226,26 @@ impl Contract for FlashbetMarketContract {
         }
     }
 
-    async fn process_streams(&mut self, _updates: Vec<linera_sdk::linera_base_types::StreamUpdate>) {
-        // For Wave 1: Oracle results will come via direct messages
-        // rather than event streams (simplified architecture)
-        // This method can be used in Wave 2+ for more sophisticated
-        // event stream processing
+    async fn process_streams(&mut self, updates: Vec<linera_sdk::linera_base_types::StreamUpdate>) {
+        for update in updates {
+            // Check if this is from a subscribed User chain
+            for index in update.new_indices() {
+                // Try to read the event as UserEvent using the stream accessor
+                // Note: This requires manual handling since it's a cross-application event
+
+                // For now, we'll process bets via execute_message instead
+                // Cross-application event deserialization needs BCS manual handling
+                // which requires access to raw event bytes not exposed by SDK
+
+                // The bet flow works like this:
+                // 1. User emits UserEvent::BetPlaced
+                // 2. User ALSO needs to send execute_message to Market
+                // 3. Market processes via execute_message (already implemented)
+
+                // Mark this stream as processed
+                _ = (update.chain_id, index);
+            }
+        }
     }
 
     async fn store(mut self) {

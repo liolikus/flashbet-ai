@@ -62,7 +62,8 @@ export function formatAmount(amount: Amount): string {
 export function parseAmount(value: string): Amount {
   const [whole, fraction = '0'] = value.split('.');
   const paddedFraction = fraction.padEnd(18, '0').slice(0, 18);
-  const amount = BigInt(whole) * BigInt(10 ** 18) + BigInt(paddedFraction);
+  // Use BigInt literal to avoid precision loss with large numbers
+  const amount = BigInt(whole) * BigInt("1000000000000000000") + BigInt(paddedFraction);
   return amount.toString();
 }
 

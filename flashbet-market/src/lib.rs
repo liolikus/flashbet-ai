@@ -48,6 +48,23 @@ pub enum Operation {
         input: CreateMarketInput,
     },
 
+    /// Register a bet from a User chain
+    /// Wave 1: Called by frontend after user places bet
+    /// Wave 2+: Will be triggered automatically via cross-app events
+    RegisterBet {
+        /// The bet to register
+        bet: flashbet_shared::Bet,
+    },
+
+    /// Subscribe to a User chain to receive bet events
+    /// This enables cross-application event streaming
+    SubscribeToUser {
+        /// User chain ID
+        user_chain: ChainId,
+        /// User application ID
+        user_app_id: String,
+    },
+
     /// Manually lock the market (no more bets accepted)
     LockMarket,
 

@@ -2,10 +2,10 @@
 
 mod state;
 
-use flashbet_shared::{Bet, MarketMessage, UserEvent};
+use flashbet_shared::{Bet, UserEvent};
 use flashbet_user::{InstantiationArgument, Message, Operation};
 use linera_sdk::{
-    linera_base_types::{Amount, ApplicationId, StreamName, WithContractAbi},
+    linera_base_types::{Amount, StreamName, WithContractAbi},
     views::{RootView, View},
     Contract, ContractRuntime,
 };
@@ -100,23 +100,14 @@ impl Contract for FlashbetUserContract {
                     .insert(&bet_id, bet.clone())
                     .expect("Failed to insert bet history");
 
-                // 7. Send cross-chain message to Market Chain
-                // Note: Messages are sent to chains, not specific applications
-                // The Market Chain contract will receive this message
-                self.runtime
-                    .prepare_message(Message::PlaceBet { bet: bet.clone() })
-                    .with_tracking() // Bounce back if rejected
-                    .with_authentication() // Forward user identity
-                    .send_to(market_chain);
-
-                // 8. Emit event for GraphQL subscribers
+                // 7. Emit BetPlaced event
+                // Wave 1: Frontend will relay this bet to Market chain via RegisterBet operation
+                // Wave 2+: Market chain will subscribe to this event and process automatically
                 self.runtime.emit(
-                    StreamName::from(b"user_events".to_vec()),
+                    StreamName::from(b"user_bets".to_vec()),
                     &UserEvent::BetPlaced {
-                        bet_id,
-                        market_id,
-                        outcome,
-                        amount,
+                        market_chain,
+                        bet: bet.clone(),
                     },
                 );
             }

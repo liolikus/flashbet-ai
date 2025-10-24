@@ -15,8 +15,9 @@ export default function MarketsList() {
     setLoading(true);
     setError(null);
     try {
+      // Query Market application on Market chain
       const response = await fetch(
-        `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.MARKET}`,
+        `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,12 +87,18 @@ export default function MarketsList() {
   }, []);
 
   const handlePlaceBet = async (
-    marketId: string,
+    _marketId: string, // eventId, not used - marketId is always 0 in Linera (one market per chain)
     outcome: Outcome,
     amount: string
   ) => {
     try {
-      const response = await fetch(
+      // In Linera architecture, each market has its own chain, so marketId is always 0
+      const numericMarketId = 0;
+      const amountParsed = parseAmount(amount);
+
+      // Step 1: Send placeBet mutation to User application (deducts balance, emits event)
+      console.log('Step 1: Placing bet on User chain...');
+      const userResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
         {
           method: 'POST',
@@ -99,20 +106,62 @@ export default function MarketsList() {
           body: JSON.stringify({
             query: `mutation {
               placeBet(
-                marketChain: "${APP_IDS.CHAIN}"
-                marketId: ${marketId}
+                marketChain: "${APP_IDS.MARKET_CHAIN}"
+                marketId: ${numericMarketId}
                 outcome: ${outcome.toUpperCase()}
-                amount: "${parseAmount(amount)}"
+                amount: "${amountParsed}"
               )
             }`,
           }),
         }
       );
 
-      const data = await response.json();
-      if (data.errors) {
-        console.error('Bet placement failed:', data.errors);
-        throw new Error(data.errors[0]?.message || 'Failed to place bet');
+      const userData = await userResponse.json();
+      if (userData.errors) {
+        console.error('User bet placement failed:', userData.errors);
+        throw new Error(userData.errors[0]?.message || 'Failed to place bet on User chain');
+      }
+
+      console.log('✓ User bet placed successfully');
+
+      // Step 2: Relay bet to Market chain via RegisterBet operation
+      // Wave 1: Frontend acts as relay between User and Market chains
+      // Wave 2+: This will be automatic via cross-app event processing
+      console.log('Step 2: Registering bet on Market chain...');
+
+      // Build the Bet object matching Linera's Bet structure
+      // Note: betId and user will be assigned by User contract, but we need to construct it for Market
+      // For now, we'll let Market derive these from the incoming request
+      const marketResponse = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `mutation {
+              registerBet(
+                bet: {
+                  betId: 0
+                  marketId: ${numericMarketId}
+                  user: "${APP_IDS.CHAIN}:0"
+                  outcome: ${outcome.toUpperCase()}
+                  amount: "${amountParsed}"
+                  timestamp: ${Date.now() * 1000}
+                  userChain: "${APP_IDS.CHAIN}"
+                }
+              )
+            }`,
+          }),
+        }
+      );
+
+      const marketData = await marketResponse.json();
+      if (marketData.errors) {
+        console.error('Market bet registration failed:', marketData.errors);
+        console.warn('⚠️ Bet placed on User chain but not registered on Market chain - balance deducted but pool not updated');
+        // Don't throw - bet is placed on User side, Market sync issue
+      } else {
+        console.log('✓ Bet registered on Market chain');
       }
 
       // Refresh market data

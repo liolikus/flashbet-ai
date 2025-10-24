@@ -23,10 +23,12 @@ export const client = new ApolloClient({
   },
 });
 
-// Application IDs from deployment
+// Application IDs from deployment (separate chains for cross-chain messaging)
 export const APP_IDS = {
-  CHAIN: '2ded66b2c1277f566a798343954aa0fb2297ed7f902d93de7cb7b6afe43e0299',
-  ORACLE: '4354163cac4183dc17bef63ec9e8d22a949c6046d9f36092e1e1a53eb1ca0c99',
-  MARKET: 'b50abb232c6bf41e9fd8ba315790f766d35b7c16da993eb3e2a112e5d5a31050',
-  USER: '874a0002bcf3195f98bed4d26f6e2ea5f577f70c12d9d715ac97247d1b8bfb53',
+  CHAIN: 'fe63387ba41a621967b44bd078a03b1dd2821984c2c261fc93d97a01a1fdeefd', // User Chain
+  MARKET_CHAIN: '8287cb972a617fc1c648bcf4a8ed6dd9f61c9c80607bdd98055540447caf7786', // Market Chain (for queries and mutations)
+  ORACLE_CHAIN: '2ded66b2c1277f566a798343954aa0fb2297ed7f902d93de7cb7b6afe43e0299', // Oracle Chain
+  ORACLE: '16f282df931295c6e6c1201444135ee11d26bcfdd003f1a7f38283cdc8ac96f9',
+  MARKET: '22b417a675df8caa440161061a5a7209e1ae2c9e8a9b0f40de16d6756f8de993',
+  USER: '60f252f3cdeeefcc0ad3160b4f010f22a6b3e8cf026c2876b3e2f86b91a7a1cb',
 };

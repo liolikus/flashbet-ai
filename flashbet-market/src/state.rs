@@ -4,8 +4,8 @@
 
 use flashbet_shared::{Bet, MarketInfo, MarketStatus, Outcome};
 use linera_sdk::{
-    linera_base_types::{Amount, ChainId},
-    views::{linera_views, MapView, RegisterView, RootView, ViewStorageContext},
+    linera_base_types::{Amount, ApplicationId, ChainId},
+    views::{linera_views, MapView, RegisterView, RootView, SetView, ViewStorageContext},
 };
 
 #[derive(RootView)]
@@ -33,6 +33,10 @@ pub struct FlashbetMarketState {
 
     /// Counter for total number of bets
     pub bet_count: RegisterView<u64>,
+
+    /// Subscribed User applications (for receiving bet events)
+    /// Tracks which User chains/apps we're listening to
+    pub subscribed_users: SetView<ApplicationId>,
 }
 
 impl FlashbetMarketState {
