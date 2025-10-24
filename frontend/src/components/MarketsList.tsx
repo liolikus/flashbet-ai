@@ -127,8 +127,8 @@ export default function MarketsList() {
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="card animate-pulse">
-            <div className="h-32 bg-gray-200 rounded"></div>
+          <div key={i} className="card">
+            <div className="skeleton" style={{ height: '8rem', borderRadius: '6px' }}></div>
           </div>
         ))}
       </div>
@@ -137,8 +137,8 @@ export default function MarketsList() {
 
   if (error) {
     return (
-      <div className="card bg-red-50 border-red-200">
-        <p className="text-red-600">Failed to load markets: {error}</p>
+      <div className="card error-card">
+        <p className="font-semibold">Failed to load markets: {error}</p>
         <button onClick={fetchMarket} className="btn-secondary mt-4">
           Retry
         </button>

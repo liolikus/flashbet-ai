@@ -73,8 +73,8 @@ export default function UserBalance() {
     <div className="card">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Your Balance</h2>
-          <p className="text-sm text-gray-500">Chain: {APP_IDS.CHAIN.slice(0, 8)}...</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'hsl(var(--heroui-foreground))' }}>Your Balance</h2>
+          <p className="text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Chain: {APP_IDS.CHAIN.slice(0, 8)}...</p>
         </div>
         <button
           onClick={() => setIsDepositOpen(!isDepositOpen)}
@@ -87,23 +87,21 @@ export default function UserBalance() {
       {/* Balance Display */}
       <div className="mb-4">
         {loading && balance === '0' ? (
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded"></div>
-          </div>
+          <div className="skeleton" style={{ height: '4rem', borderRadius: '8px' }}></div>
         ) : (
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-4xl font-bold text-blue-600">
+          <div className="balance-display">
+            <div className="text-4xl font-bold">
               {formatAmount(balance)}
             </div>
-            <div className="text-sm text-gray-600 mt-1">tokens</div>
+            <div className="text-sm mt-1" style={{ opacity: 0.8 }}>tokens</div>
           </div>
         )}
       </div>
 
       {/* Deposit Form */}
       {isDepositOpen && (
-        <div className="border-t pt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="border-t pt-4" style={{ borderColor: 'hsl(var(--heroui-default-200))' }}>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'hsl(var(--heroui-foreground))' }}>
             Deposit Amount
           </label>
           <div className="flex space-x-2">
@@ -112,7 +110,7 @@ export default function UserBalance() {
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
               placeholder="Enter amount"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1"
               min="0"
               step="0.01"
             />
@@ -124,7 +122,7 @@ export default function UserBalance() {
               {depositing ? 'Depositing...' : 'Deposit'}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs mt-2" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
             Note: This will add tokens to your User Chain balance
           </p>
         </div>

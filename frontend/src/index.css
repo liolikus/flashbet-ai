@@ -1,26 +1,425 @@
 @import "tailwindcss";
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    --font-sans: ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    --color-red-50: oklch(97.1% .013 17.38);
+    --color-red-100: oklch(93.6% .032 17.717);
+    --color-red-200: oklch(88.5% .062 18.334);
+    --color-red-300: oklch(80.8% .114 19.571);
+    --color-red-400: oklch(70.4% .191 22.216);
+    --color-red-500: oklch(63.7% .237 25.331);
+    --color-red-600: oklch(57.7% .245 27.325);
+    --color-red-700: oklch(50.5% .213 27.518);
+    --color-red-800: oklch(44.4% .177 26.899);
+    --color-red-900: oklch(39.6% .141 25.723);
+    --color-orange-50: oklch(98% .016 73.684);
+    --color-orange-100: oklch(95.4% .038 75.164);
+    --color-amber-50: oklch(98.7% .022 95.277);
+    --color-amber-100: oklch(96.2% .059 95.617);
+    --color-amber-200: oklch(92.4% .12 95.746);
+    --color-amber-400: oklch(82.8% .189 84.429);
+    --color-amber-500: oklch(76.9% .188 70.08);
+    --color-amber-600: oklch(66.6% .179 58.318);
+    --color-amber-700: oklch(55.5% .163 48.998);
+    --color-yellow-50: oklch(98.7% .026 102.212);
+    --color-yellow-200: oklch(94.5% .129 101.54);
+    --color-yellow-500: oklch(79.5% .184 86.047);
+    --color-yellow-600: oklch(68.1% .162 75.834);
+    --color-yellow-800: oklch(47.6% .114 61.907);
+    --color-green-50: oklch(98.2% .018 155.826);
+    --color-green-100: oklch(96.2% .044 156.743);
+    --color-green-200: oklch(92.5% .084 155.995);
+    --color-green-400: oklch(79.2% .209 151.711);
+    --color-green-500: oklch(72.3% .219 149.579);
+    --color-green-600: oklch(62.7% .194 149.214);
+    --color-green-700: oklch(52.7% .154 150.069);
+    --color-emerald-50: oklch(97.9% .021 166.113);
+    --color-emerald-100: oklch(95% .052 163.051);
+    --color-emerald-200: oklch(90.5% .093 164.15);
+    --color-emerald-400: oklch(76.5% .177 163.223);
+    --color-emerald-500: oklch(69.6% .17 162.48);
+    --color-emerald-600: oklch(59.6% .145 163.225);
+    --color-sky-500: oklch(68.5% .169 237.323);
+    --color-blue-50: oklch(97% .014 254.604);
+    --color-blue-100: oklch(93.2% .032 255.585);
+    --color-blue-200: oklch(88.2% .059 254.128);
+    --color-blue-400: oklch(70.7% .165 254.624);
+    --color-blue-600: oklch(54.6% .245 262.881);
+    --color-blue-700: oklch(48.8% .243 264.376);
+    --color-purple-100: oklch(94.6% .033 307.174);
+    --color-purple-700: oklch(49.6% .265 301.924);
+    --color-gray-50: oklch(98.5% .002 247.839);
+    --color-gray-100: oklch(96.7% .003 264.542);
+    --color-gray-200: oklch(92.8% .006 264.531);
+    --color-gray-300: oklch(87.2% .01 258.338);
+    --color-gray-400: oklch(70.7% .022 261.325);
+    --color-gray-500: oklch(55.1% .027 264.364);
+    --color-gray-600: oklch(44.6% .03 256.802);
+    --color-gray-700: oklch(37.3% .034 259.733);
+    --color-gray-800: oklch(27.8% .033 256.848);
+    --color-gray-900: oklch(21% .034 264.665);
+    --color-black: #000;
+    --color-white: #fff;
+    --spacing: .25rem;
+    --container-xs: 20rem;
+    --container-sm: 24rem;
+    --container-md: 28rem;
+    --container-lg: 32rem;
+    --container-xl: 36rem;
+    --container-2xl: 42rem;
+    --container-3xl: 48rem;
+    --container-4xl: 56rem;
+    --container-5xl: 64rem;
+    --container-6xl: 72rem;
+    --container-7xl: 80rem;
+    --text-xs: .75rem;
+    --text-xs--line-height: calc(1/.75);
+    --text-sm: .875rem;
+    --text-sm--line-height: calc(1.25/.875);
+    --text-base: 1rem;
+    --text-base--line-height: 1.5;
+    --text-lg: 1.125rem;
+    --text-lg--line-height: calc(1.75/1.125);
+    --text-xl: 1.25rem;
+    --text-xl--line-height: calc(1.75/1.25);
+    --text-2xl: 1.5rem;
+    --text-2xl--line-height: calc(2/1.5);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: 1.2;
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: calc(2.5/2.25);
+    --text-5xl: 3rem;
+    --text-5xl--line-height: 1;
+    --text-6xl: 3.75rem;
+    --text-6xl--line-height: 1;
+    --text-7xl: 4.5rem;
+    --text-7xl--line-height: 1;
+    --font-weight-extralight: 200;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --tracking-tight: -.025em;
+    --tracking-wider: .05em;
+    --leading-tight: 1.25;
+    --leading-relaxed: 1.625;
+    --radius-xs: .125rem;
+    --radius-sm: .25rem;
+    --radius-md: .375rem;
+    --radius-lg: .5rem;
+    --radius-xl: .75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+    --ease-in: cubic-bezier(.4,0,1,1);
+    --ease-out: cubic-bezier(0,0,.2,1);
+    --ease-in-out: cubic-bezier(.4,0,.2,1);
+    --animate-spin: spin 1s linear infinite;
+    --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1)infinite;
+    --blur-sm: 8px;
+    --blur-md: 12px;
+    --blur-lg: 16px;
+    --blur-xl: 24px;
+    --aspect-video: 16/9;
+    --default-transition-duration: .15s;
+    --default-transition-timing-function: cubic-bezier(.4,0,.2,1);
+    --default-font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    line-height: 1.5;
+    font-feature-settings: var(--default-font-feature-settings,normal);
+    font-variation-settings: var(--default-font-variation-settings,normal);
+    -webkit-tap-highlight-color: transparent;
+    --heroui-background: 0 0% 100%;
+    --heroui-foreground-50: 0 0% 98.04%;
+    --heroui-foreground-100: 240 4.76% 95.88%;
+    --heroui-foreground-200: 240 5.88% 90%;
+    --heroui-foreground-300: 240 4.88% 83.92%;
+    --heroui-foreground-400: 240 5.03% 64.9%;
+    --heroui-foreground-500: 240 3.83% 46.08%;
+    --heroui-foreground-600: 240 5.2% 33.92%;
+    --heroui-foreground-700: 240 5.26% 26.08%;
+    --heroui-foreground-800: 240 3.7% 15.88%;
+    --heroui-foreground-900: 240 5.88% 10%;
+    --heroui-foreground: 201.82 24.44% 8.82%;
+    --heroui-divider: 0 0% 6.67%;
+    --heroui-focus: 212.02 100% 46.67%;
+    --heroui-overlay: 0 0% 0%;
+    --heroui-content1: 0 0% 100%;
+    --heroui-content1-foreground: 201.82 24.44% 8.82%;
+    --heroui-content2: 240 4.76% 95.88%;
+    --heroui-content2-foreground: 240 3.7% 15.88%;
+    --heroui-content3: 240 5.88% 90%;
+    --heroui-content3-foreground: 240 5.26% 26.08%;
+    --heroui-content4: 240 4.88% 83.92%;
+    --heroui-content4-foreground: 240 5.2% 33.92%;
+    --heroui-default-50: 0 0% 98.04%;
+    --heroui-default-100: 240 4.76% 95.88%;
+    --heroui-default-200: 240 5.88% 90%;
+    --heroui-default-300: 240 4.88% 83.92%;
+    --heroui-default-400: 240 5.03% 64.9%;
+    --heroui-default-500: 240 3.83% 46.08%;
+    --heroui-default-600: 240 5.2% 33.92%;
+    --heroui-default-700: 240 5.26% 26.08%;
+    --heroui-default-800: 240 3.7% 15.88%;
+    --heroui-default-900: 240 5.88% 10%;
+    --heroui-default-foreground: 0 0% 0%;
+    --heroui-default: 240 4.88% 83.92%;
+    --heroui-primary-50: 212.5 92.31% 94.9%;
+    --heroui-primary-100: 211.84 92.45% 89.61%;
+    --heroui-primary-200: 211.84 92.45% 79.22%;
+    --heroui-primary-300: 212.24 92.45% 68.82%;
+    --heroui-primary-400: 212.14 92.45% 58.43%;
+    --heroui-primary-500: 212.02 100% 46.67%;
+    --heroui-primary-600: 212.14 100% 38.43%;
+    --heroui-primary-700: 212.24 100% 28.82%;
+    --heroui-primary-800: 211.84 100% 19.22%;
+    --heroui-primary-900: 211.84 100% 9.61%;
+    --heroui-primary-foreground: 0 0% 100%;
+    --heroui-primary: 212.02 100% 46.67%;
+    --heroui-secondary-50: 270 61.54% 94.9%;
+    --heroui-secondary-100: 270 59.26% 89.41%;
+    --heroui-secondary-200: 270 59.26% 78.82%;
+    --heroui-secondary-300: 270 59.26% 68.24%;
+    --heroui-secondary-400: 270 59.26% 57.65%;
+    --heroui-secondary-500: 270 66.67% 47.06%;
+    --heroui-secondary-600: 270 66.67% 37.65%;
+    --heroui-secondary-700: 270 66.67% 28.24%;
+    --heroui-secondary-800: 270 66.67% 18.82%;
+    --heroui-secondary-900: 270 66.67% 9.41%;
+    --heroui-secondary-foreground: 0 0% 100%;
+    --heroui-secondary: 270 66.67% 47.06%;
+    --heroui-success-50: 146.67 64.29% 94.51%;
+    --heroui-success-100: 145.71 61.4% 88.82%;
+    --heroui-success-200: 146.2 61.74% 77.45%;
+    --heroui-success-300: 145.79 62.57% 66.47%;
+    --heroui-success-400: 146.01 62.45% 55.1%;
+    --heroui-success-500: 145.96 79.46% 43.92%;
+    --heroui-success-600: 146.01 79.89% 35.1%;
+    --heroui-success-700: 145.79 79.26% 26.47%;
+    --heroui-success-800: 146.2 79.78% 17.45%;
+    --heroui-success-900: 145.71 77.78% 8.82%;
+    --heroui-success-foreground: 0 0% 0%;
+    --heroui-success: 145.96 79.46% 43.92%;
+    --heroui-warning-50: 54.55 91.67% 95.29%;
+    --heroui-warning-100: 37.14 91.3% 90.98%;
+    --heroui-warning-200: 37.14 91.3% 81.96%;
+    --heroui-warning-300: 36.96 91.24% 73.14%;
+    --heroui-warning-400: 37.01 91.26% 64.12%;
+    --heroui-warning-500: 37.03 91.27% 55.1%;
+    --heroui-warning-600: 37.01 74.22% 44.12%;
+    --heroui-warning-700: 36.96 73.96% 33.14%;
+    --heroui-warning-800: 37.14 75% 21.96%;
+    --heroui-warning-900: 37.14 75% 10.98%;
+    --heroui-warning-foreground: 0 0% 0%;
+    --heroui-warning: 37.03 91.27% 55.1%;
+    --heroui-danger-50: 339.13 92% 95.1%;
+    --heroui-danger-100: 340 91.84% 90.39%;
+    --heroui-danger-200: 339.33 90% 80.39%;
+    --heroui-danger-300: 339.11 90.6% 70.78%;
+    --heroui-danger-400: 339 90% 60.78%;
+    --heroui-danger-500: 339.2 90.36% 51.18%;
+    --heroui-danger-600: 339 86.54% 40.78%;
+    --heroui-danger-700: 339.11 85.99% 30.78%;
+    --heroui-danger-800: 339.33 86.54% 20.39%;
+    --heroui-danger-900: 340 84.91% 10.39%;
+    --heroui-danger-foreground: 0 0% 100%;
+    --heroui-danger: 339.2 90.36% 51.18%;
+    --heroui-divider-weight: 1px;
+    --heroui-disabled-opacity: .5;
+    --heroui-font-size-tiny: .75rem;
+    --heroui-font-size-small: .875rem;
+    --heroui-font-size-medium: 1rem;
+    --heroui-font-size-large: 1.125rem;
+    --heroui-line-height-tiny: 1rem;
+    --heroui-line-height-small: 1.25rem;
+    --heroui-line-height-medium: 1.5rem;
+    --heroui-line-height-large: 1.75rem;
+    --heroui-radius-small: 8px;
+    --heroui-radius-medium: 12px;
+    --heroui-radius-large: 14px;
+    --heroui-border-width-small: 1px;
+    --heroui-border-width-medium: 2px;
+    --heroui-border-width-large: 3px;
+    --heroui-box-shadow-small: 0px 0px 5px 0px #00000005,0px 2px 10px 0px #0000000f,0px 0px 1px 0px #0000004d;
+    --heroui-box-shadow-medium: 0px 0px 15px 0px #00000008,0px 2px 30px 0px #00000014,0px 0px 1px 0px #0000004d;
+    --heroui-box-shadow-large: 0px 0px 30px 0px #0000000a,0px 30px 60px 0px #0000001f,0px 0px 1px 0px #0000004d;
+    --heroui-hover-opacity: .8;
+    --font-heading: "Epilogue",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-body: "Hanken Grotesk",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --font-mono: "Fira Code","Courier New",monospace;
+    color-scheme: light;
+    font-weight: 400;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background: hsl(var(--heroui-background));
+  color: hsl(var(--heroui-foreground));
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Button Styles */
 .btn-primary {
-  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors;
+  background: hsl(var(--heroui-primary));
+  color: hsl(var(--heroui-primary-foreground));
+  font-weight: var(--font-weight-semibold);
+  padding: 0.5rem 1rem;
+  border-radius: var(--heroui-radius-medium);
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: var(--heroui-hover-opacity);
+}
+
+.btn-primary:disabled {
+  opacity: var(--heroui-disabled-opacity);
+  cursor: not-allowed;
 }
 
 .btn-secondary {
-  @apply bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors;
+  background: hsl(var(--heroui-content2));
+  color: hsl(var(--heroui-foreground));
+  font-weight: var(--font-weight-semibold);
+  padding: 0.5rem 1rem;
+  border-radius: var(--heroui-radius-medium);
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-300));
+  cursor: pointer;
+  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
 }
 
+.btn-secondary:hover {
+  background: hsl(var(--heroui-content3));
+  border-color: hsl(var(--heroui-default-400));
+}
+
+/* Card Styles */
 .card {
-  @apply bg-white rounded-lg shadow-md p-6;
+  background: hsl(var(--heroui-content1));
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-200));
+  border-radius: var(--heroui-radius-large);
+  padding: 1.5rem;
+  box-shadow: var(--heroui-box-shadow-small);
+  transition: box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+.card:hover {
+  box-shadow: var(--heroui-box-shadow-medium);
+}
+
+/* Input Styles */
+input[type="number"],
+input[type="text"] {
+  background: hsl(var(--heroui-content1));
+  color: hsl(var(--heroui-foreground));
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-300));
+  border-radius: var(--heroui-radius-medium);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--heroui-font-size-medium);
+  transition: border-color var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+input:focus {
+  outline: 2px solid hsl(var(--heroui-focus));
+  outline-offset: -2px;
+  border-color: hsl(var(--heroui-primary));
+}
+
+/* Status Colors */
+.status-open {
+  color: hsl(var(--heroui-success));
+  background: hsl(var(--heroui-success-100));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--heroui-radius-medium);
+  font-size: var(--heroui-font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.status-locked {
+  color: hsl(var(--heroui-warning));
+  background: hsl(var(--heroui-warning-100));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--heroui-radius-medium);
+  font-size: var(--heroui-font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.status-resolved {
+  color: hsl(var(--heroui-primary));
+  background: hsl(var(--heroui-primary-100));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--heroui-radius-medium);
+  font-size: var(--heroui-font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.status-cancelled {
+  color: hsl(var(--heroui-danger));
+  background: hsl(var(--heroui-danger-100));
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--heroui-radius-medium);
+  font-size: var(--heroui-font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Outcome Button Styles */
+.outcome-button {
+  background: hsl(var(--heroui-content1));
+  border: var(--heroui-border-width-medium) solid hsl(var(--heroui-default-200));
+  border-radius: var(--heroui-radius-medium);
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
+}
+
+.outcome-button:hover:not(:disabled) {
+  border-color: hsl(var(--heroui-primary));
+  background: hsl(var(--heroui-content2));
+}
+
+.outcome-button.selected {
+  border-color: hsl(var(--heroui-primary));
+  background: hsl(var(--heroui-primary-100));
+}
+
+.outcome-button:disabled {
+  opacity: var(--heroui-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* Balance Display */
+.balance-display {
+  background: hsl(var(--heroui-primary-100));
+  color: hsl(var(--heroui-primary));
+  border-radius: var(--heroui-radius-medium);
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Error State */
+.error-card {
+  background: hsl(var(--heroui-danger-50));
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-danger));
+  color: hsl(var(--heroui-danger));
+}
+
+/* Loading Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, hsl(var(--heroui-content2)) 25%, hsl(var(--heroui-content3)) 50%, hsl(var(--heroui-content2)) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
