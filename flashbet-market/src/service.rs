@@ -6,10 +6,10 @@ use std::sync::Arc;
 
 use async_graphql::{EmptySubscription, Object, Schema};
 use flashbet_market::Operation;
-use flashbet_shared::{Bet, MarketInfo, MarketStatus, Outcome};
+use flashbet_shared::{Bet, EventId, MarketInfo, MarketStatus, MarketType, Outcome};
 use linera_sdk::{
     graphql::GraphQLMutationRoot,
-    linera_base_types::{Amount, WithServiceAbi},
+    linera_base_types::{Amount, Timestamp, WithServiceAbi},
     views::View,
     Service, ServiceRuntime,
 };
@@ -41,9 +41,38 @@ impl Service for FlashbetMarketService {
     }
 
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
-        let info = self.state.info.get()
-            .clone()
-            .expect("Market not initialized - call CreateMarket operation first");
+        // Check if market is initialized
+        let info = match self.state.info.get().clone() {
+            Some(i) => i,
+            None => {
+                // Market not yet created - return default values
+                return Schema::build(
+                    QueryRoot {
+                        info: MarketInfo {
+                            event_id: EventId::new("none".to_string()),
+                            description: "No market created yet".to_string(),
+                            event_time: Timestamp::from(0),
+                            market_type: MarketType::MatchWinner,
+                            home_team: "N/A".to_string(),
+                            away_team: "N/A".to_string(),
+                        },
+                        status: MarketStatus::Open,
+                        total_pool: Amount::ZERO,
+                        home_pool: Amount::ZERO,
+                        away_pool: Amount::ZERO,
+                        draw_pool: Amount::ZERO,
+                        all_bets: Vec::new(),
+                        bet_count: 0,
+                    },
+                    Operation::mutation_root(self.runtime.clone()),
+                    EmptySubscription,
+                )
+                .finish()
+                .execute(query)
+                .await
+            }
+        };
+
         let status = self.state.get_status().clone();
         let total_pool = self.state.get_total_pool();
 

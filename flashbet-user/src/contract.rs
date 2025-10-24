@@ -5,7 +5,7 @@ mod state;
 use flashbet_shared::{Bet, MarketMessage, UserEvent};
 use flashbet_user::{InstantiationArgument, Message, Operation};
 use linera_sdk::{
-    linera_base_types::{ApplicationId, StreamName, WithContractAbi},
+    linera_base_types::{Amount, ApplicationId, StreamName, WithContractAbi},
     views::{RootView, View},
     Contract, ContractRuntime,
 };
@@ -36,12 +36,12 @@ impl Contract for FlashbetUserContract {
         FlashbetUserContract { state, runtime }
     }
 
-    async fn instantiate(&mut self, argument: Self::InstantiationArgument) {
+    async fn instantiate(&mut self, _argument: Self::InstantiationArgument) {
         // Validate application parameters
         self.runtime.application_parameters();
 
-        // Set initial balance
-        self.state.balance.set(argument.initial_balance);
+        // Set initial balance to zero (users deposit funds via Deposit operation)
+        self.state.balance.set(Amount::ZERO);
 
         // Initialize bet ID counter
         self.state.next_bet_id.set(0);
@@ -104,7 +104,7 @@ impl Contract for FlashbetUserContract {
                 // Note: Messages are sent to chains, not specific applications
                 // The Market Chain contract will receive this message
                 self.runtime
-                    .prepare_message(Message::CrossChainBet(bet.clone()))
+                    .prepare_message(Message::PlaceBet { bet: bet.clone() })
                     .with_tracking() // Bounce back if rejected
                     .with_authentication() // Forward user identity
                     .send_to(market_chain);
@@ -134,7 +134,7 @@ impl Contract for FlashbetUserContract {
 
     async fn execute_message(&mut self, message: Self::Message) {
         match message {
-            Message::CrossChainBet(_) => {
+            Message::PlaceBet { .. } => {
                 // This message is sent TO Market Chains, not received by User Chain
                 // If we receive it back (bounced), just ignore it
             }

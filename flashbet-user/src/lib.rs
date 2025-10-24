@@ -51,12 +51,10 @@ pub enum Message {
     Payout(Payout),
 
     /// Cross-chain bet message (sent to Market Chain)
-    CrossChainBet(flashbet_shared::Bet),
+    /// Must match Market Chain's Message::PlaceBet format
+    PlaceBet { bet: flashbet_shared::Bet },
 }
 
 /// Instantiation argument for User Chain
-#[derive(Debug, Deserialize, Serialize, SimpleObject)]
-pub struct InstantiationArgument {
-    /// Initial balance for the user
-    pub initial_balance: Amount,
-}
+/// Wave 1: No init params - users start with zero and use Deposit
+pub type InstantiationArgument = ();
