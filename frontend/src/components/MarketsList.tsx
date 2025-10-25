@@ -57,6 +57,8 @@ export default function MarketsList() {
             description: rawData.description || 'Unknown Market',
             closeTime: rawData.eventTime || 0,
             eventTime: rawData.eventTime || 0,
+            homeTeam: rawData.homeTeam,
+            awayTeam: rawData.awayTeam,
           },
           status: rawData.status || 'Open',
           pools: {

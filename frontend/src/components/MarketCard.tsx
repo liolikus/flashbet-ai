@@ -85,7 +85,7 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium">{getOutcomeDisplay(outcome)}</span>
+                  <span className="font-medium">{getOutcomeDisplay(outcome, market.info.homeTeam, market.info.awayTeam)}</span>
                   {market.winningOutcome === outcome && (
                     <span className="font-bold" style={{ color: 'hsl(var(--heroui-success))' }}>✓ Winner</span>
                   )}
@@ -108,7 +108,7 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
       {isOpen && selectedOutcome && (
         <div className="border-t pt-4" style={{ borderColor: 'hsl(var(--heroui-default-200))' }}>
           <label className="block text-sm font-medium mb-2" style={{ color: 'hsl(var(--heroui-foreground))' }}>
-            Bet Amount for {getOutcomeDisplay(selectedOutcome)}
+            Bet Amount for {getOutcomeDisplay(selectedOutcome, market.info.homeTeam, market.info.awayTeam)}
           </label>
           <div className="flex space-x-2">
             <input
@@ -140,7 +140,7 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
       {!isOpen && (
         <div className="text-center py-4" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
           {market.status === 'Resolved' && market.winningOutcome
-            ? `Market resolved - ${getOutcomeDisplay(market.winningOutcome)} won!`
+            ? `Market resolved - ${getOutcomeDisplay(market.winningOutcome, market.info.homeTeam, market.info.awayTeam)} won!`
             : `Market is ${market.status.toLowerCase()}`}
         </div>
       )}

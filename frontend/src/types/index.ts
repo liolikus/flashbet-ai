@@ -42,6 +42,8 @@ export interface MarketInfo {
   description: string;
   closeTime: number;
   eventTime: number;
+  homeTeam?: string;
+  awayTeam?: string;
 }
 
 // Market State (from Market Chain)

@@ -163,16 +163,20 @@ export function formatRelativeTime(timestamp: number): string {
 }
 
 /**
- * Get outcome display name with emoji
+ * Get outcome display name (Polymarket-style: show team names instead of "Home/Away Win")
  */
-export function getOutcomeDisplay(outcome: Outcome): string {
+export function getOutcomeDisplay(
+  outcome: Outcome,
+  homeTeam?: string,
+  awayTeam?: string
+): string {
   switch (outcome) {
     case Outcome.Home:
-      return '🏠 Home Win';
+      return homeTeam || '🏠 Home Win';
     case Outcome.Away:
-      return '✈️ Away Win';
+      return awayTeam || '✈️ Away Win';
     case Outcome.Draw:
-      return '🤝 Draw';
+      return 'Draw';
     default:
       return outcome;
   }

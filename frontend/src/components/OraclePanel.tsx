@@ -239,20 +239,14 @@ export function OraclePanel({ eventId, homeTeam, awayTeam, onResultPublished }: 
               className={`outcome-button flex-1 ${selectedOutcome === 'HOME' ? 'selected' : ''}`}
               disabled={publishing}
             >
-              Home Win
-              <span className="block text-xs mt-1" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
-                {homeTeam}
-              </span>
+              {homeTeam}
             </button>
             <button
               onClick={() => setSelectedOutcome('AWAY')}
               className={`outcome-button flex-1 ${selectedOutcome === 'AWAY' ? 'selected' : ''}`}
               disabled={publishing}
             >
-              Away Win
-              <span className="block text-xs mt-1" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
-                {awayTeam}
-              </span>
+              {awayTeam}
             </button>
             <button
               onClick={() => setSelectedOutcome('DRAW')}
