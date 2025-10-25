@@ -1,0 +1,25 @@
+{
+  "name": "flashbet-oracle-worker",
+  "version": "1.0.0",
+  "description": "Automated Oracle Worker for FlashBet - fetches sports results and publishes to Linera",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc --watch",
+    "daemon": "node dist/index.js > oracle-worker.log 2>&1 &"
+  },
+  "keywords": ["oracle", "sports", "linera", "blockchain"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
