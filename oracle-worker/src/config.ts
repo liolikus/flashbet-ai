@@ -18,6 +18,8 @@ export const config = {
 
   // Sports API
   theOddsApiKey: process.env.THE_ODDS_API_KEY,
+  sportKey: process.env.SPORT_KEY || 'baseball_mlb',
+  daysFrom: parseInt(process.env.DAYS_FROM || '3', 10),
 
   // Worker Configuration
   pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS || '60000', 10),
@@ -52,3 +54,7 @@ console.log(`  - Mode: ${config.dataMode}`);
 console.log(`  - Poll Interval: ${config.pollIntervalMs}ms`);
 console.log(`  - Oracle Chain: ${config.oracleChainId}`);
 console.log(`  - Market Chain: ${config.marketChainId}`);
+if (config.dataMode === 'live') {
+  console.log(`  - Sport: ${config.sportKey}`);
+  console.log(`  - Days From: ${config.daysFrom}`);
+}

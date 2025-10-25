@@ -91,8 +91,11 @@ pub enum Message {
 }
 
 /// Instantiation argument for Market Chain
-#[derive(Debug, Deserialize, Serialize, SimpleObject)]
+#[derive(Debug, Deserialize, Serialize, SimpleObject, InputObject)]
+#[graphql(input_name = "InstantiationArgumentInput")]
 pub struct InstantiationArgument {
     /// Oracle Chain ID to subscribe to
     pub oracle_chain: ChainId,
+    /// Oracle Application ID to subscribe to
+    pub oracle_app_id: String,
 }

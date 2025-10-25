@@ -31,6 +31,9 @@ pub struct FlashbetMarketState {
     /// Oracle chain ID (for subscribing to results)
     pub oracle_chain: RegisterView<Option<ChainId>>,
 
+    /// Oracle application ID (for subscribing to results)
+    pub oracle_app_id: RegisterView<Option<ApplicationId>>,
+
     /// Counter for total number of bets
     pub bet_count: RegisterView<u64>,
 

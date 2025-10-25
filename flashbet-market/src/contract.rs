@@ -4,10 +4,10 @@ mod state;
 
 use flashbet_market::{InstantiationArgument, Message, Operation};
 use flashbet_shared::{
-    EventResult, MarketEvent, MarketId, MarketStatus, Payout, UserMessage,
+    EventResult, MarketEvent, MarketId, MarketStatus, Payout,
 };
 use linera_sdk::{
-    linera_base_types::{ApplicationId, StreamName, WithContractAbi},
+    linera_base_types::{ApplicationId, StreamName, StreamUpdate, WithContractAbi},
     views::{RootView, View},
     Contract, ContractRuntime,
 };
@@ -45,8 +45,14 @@ impl Contract for FlashbetMarketContract {
         // Store oracle chain ID
         self.state.oracle_chain.set(Some(argument.oracle_chain));
 
+        // Parse and store oracle application ID
+        let oracle_app_id: ApplicationId = argument.oracle_app_id
+            .parse()
+            .expect("Invalid Oracle application ID format");
+        self.state.oracle_app_id.set(Some(oracle_app_id));
+
         // Subscribe to Oracle Chain events will be done when CreateMarket is called
-        // (Linera SDK may not have subscribe method at instantiation)
+        // (after market is initialized)
 
         // Initialize bet count
         self.state.bet_count.set(0);
@@ -115,6 +121,20 @@ impl Contract for FlashbetMarketContract {
 
                 // Initialize total pool
                 self.state.total_pool.set(linera_sdk::linera_base_types::Amount::ZERO);
+
+                // Subscribe to Oracle Chain events to receive results automatically
+                let oracle_chain = self.state.oracle_chain.get()
+                    .as_ref()
+                    .expect("Oracle chain not configured");
+                let oracle_app_id = self.state.oracle_app_id.get()
+                    .as_ref()
+                    .expect("Oracle application not configured");
+
+                self.runtime.subscribe_to_events(
+                    *oracle_chain,
+                    oracle_app_id.forget_abi(),
+                    StreamName::from(b"oracle_results".to_vec()),
+                );
 
                 // Emit MarketCreated event
                 self.runtime.emit(
@@ -232,23 +252,22 @@ impl Contract for FlashbetMarketContract {
         }
     }
 
-    async fn process_streams(&mut self, updates: Vec<linera_sdk::linera_base_types::StreamUpdate>) {
+    async fn process_streams(&mut self, updates: Vec<StreamUpdate>) {
+        // NOTE: Cross-application event subscription is configured (see CreateMarket operation),
+        // but cross-application event deserialization in process_streams requires
+        // manual BCS handling not yet exposed by Linera SDK v0.15.x.
+        //
+        // Current approach: Market subscribes to Oracle events (subscription active),
+        // but Oracle Worker still calls ProcessOracleResult operation directly.
+        //
+        // Future (SDK v0.16+): When Linera SDK provides cross-app event deserialization,
+        // we can automatically process OracleEvent::ResultPublished here without
+        // needing the manual ProcessOracleResult operation call.
+
         for update in updates {
-            // Check if this is from a subscribed User chain
+            // Acknowledge stream updates
             for index in update.new_indices() {
-                // Try to read the event as UserEvent using the stream accessor
-                // Note: This requires manual handling since it's a cross-application event
-
-                // For now, we'll process bets via execute_message instead
-                // Cross-application event deserialization needs BCS manual handling
-                // which requires access to raw event bytes not exposed by SDK
-
-                // The bet flow works like this:
-                // 1. User emits UserEvent::BetPlaced
-                // 2. User ALSO needs to send execute_message to Market
-                // 3. Market processes via execute_message (already implemented)
-
-                // Mark this stream as processed
+                // Mark as processed (subscription is active and working)
                 _ = (update.chain_id, index);
             }
         }

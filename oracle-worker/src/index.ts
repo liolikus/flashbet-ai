@@ -1,6 +1,10 @@
 import { config } from './config';
-import { getFinishedGames, markGameProcessed } from './api/mockSportsData';
+import * as mockSportsData from './api/mockSportsData';
+import * as liveOddsData from './api/liveOddsData';
 import { handleGameResult } from './oracle/publisher';
+
+// Select data provider based on configuration
+const dataProvider = config.dataMode === 'live' ? liveOddsData : mockSportsData;
 
 /**
  * Main Oracle Worker Loop
@@ -37,8 +41,8 @@ class OracleWorker {
       const timestamp = new Date().toISOString();
       console.log(`[${timestamp}] 🔍 Polling for finished games...`);
 
-      // Fetch finished games
-      const finishedGames = await getFinishedGames();
+      // Fetch finished games using selected data provider
+      const finishedGames = await dataProvider.getFinishedGames();
 
       if (finishedGames.length === 0) {
         console.log('  ℹ️  No new finished games');
@@ -50,7 +54,7 @@ class OracleWorker {
       // Process each finished game
       for (const game of finishedGames) {
         await handleGameResult(game);
-        markGameProcessed(game.eventId);
+        dataProvider.markGameProcessed(game.eventId);
       }
     } catch (error) {
       console.error('❌ Error during poll:', error);

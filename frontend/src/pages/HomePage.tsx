@@ -1,6 +1,6 @@
 import UserBalance from '../components/UserBalance';
 import MarketsList from '../components/MarketsList';
-import { OraclePanel } from '../components/OraclePanel';
+import { OracleStatus } from '../components/OracleStatus';
 
 export default function HomePage() {
   return (
@@ -14,17 +14,9 @@ export default function HomePage() {
       <div className="lg:col-span-2 space-y-6">
         <MarketsList />
 
-        {/* Oracle Panel - For publishing results (admin/demo) */}
+        {/* Oracle Status - Real-time automation monitoring */}
         <div className="mt-8">
-          <OraclePanel
-            eventId="mlb_game_20251025_001"
-            homeTeam="Yankees"
-            awayTeam="Red Sox"
-            onResultPublished={() => {
-              console.log('Result published - refreshing market data...');
-              window.location.reload();
-            }}
-          />
+          <OracleStatus />
         </div>
       </div>
     </div>
