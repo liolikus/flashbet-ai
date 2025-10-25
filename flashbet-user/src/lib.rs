@@ -3,7 +3,7 @@
 //! Handles balance management, bet placement, and payout reception.
 
 use async_graphql::{Request, Response, SimpleObject};
-use flashbet_shared::{MarketId, Outcome, Payout, UserEvent};
+use flashbet_shared::{EventId, MarketId, Outcome, Payout, UserEvent};
 use linera_sdk::{
     graphql::GraphQLMutationRoot,
     linera_base_types::{Amount, ChainId, ContractAbi, ServiceAbi},
@@ -31,6 +31,8 @@ pub enum Operation {
         market_chain: ChainId,
         /// Market ID within that chain
         market_id: MarketId,
+        /// Event ID for the market (for multi-market support)
+        event_id: EventId,
         /// Chosen outcome (Home/Away/Draw)
         outcome: Outcome,
         /// Bet amount

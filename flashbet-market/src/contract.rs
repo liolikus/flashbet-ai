@@ -65,7 +65,7 @@ impl Contract for FlashbetMarketContract {
                 // Wave 1: Frontend-relayed bet registration
                 // Wave 2+: This will be triggered by cross-app event processing
 
-                let event_id = &bet.market_id.event_id;
+                let event_id = &bet.event_id;
 
                 // 1. Check market exists
                 assert!(
@@ -184,7 +184,7 @@ impl Contract for FlashbetMarketContract {
     async fn execute_message(&mut self, message: Self::Message) {
         match message {
             Message::PlaceBet { bet } => {
-                let event_id = &bet.market_id.event_id;
+                let event_id = &bet.event_id;
 
                 // 1. Check market exists
                 if !self.state.market_exists(event_id).await {

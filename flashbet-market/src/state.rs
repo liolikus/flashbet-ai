@@ -54,7 +54,7 @@ impl FlashbetMarketState {
             .await
             .ok()
             .flatten()
-            .map(|info| info.into_owned())
+            .map(|info| info.to_owned())
     }
 
     /// Get current market status for a specific event
@@ -64,7 +64,7 @@ impl FlashbetMarketState {
             .await
             .ok()
             .flatten()
-            .map(|status| status.into_owned())
+            .map(|status| status.to_owned())
             .unwrap_or(MarketStatus::Open)
     }
 
@@ -76,7 +76,7 @@ impl FlashbetMarketState {
     /// Check if market is open for betting
     pub async fn is_open(&self, event_id: &EventId) -> bool {
         matches!(
-            self.statuses.get(event_id).await.ok().flatten().map(|s| s.into_owned()),
+            self.statuses.get(event_id).await.ok().flatten().map(|s| s.to_owned()),
             Some(MarketStatus::Open)
         )
     }
@@ -88,7 +88,7 @@ impl FlashbetMarketState {
             .await
             .ok()
             .flatten()
-            .map(|amount| amount.into_owned())
+            .map(|amount| amount.to_owned())
             .unwrap_or(Amount::ZERO)
     }
 
@@ -99,7 +99,7 @@ impl FlashbetMarketState {
             .await
             .ok()
             .flatten()
-            .map(|amount| amount.into_owned())
+            .map(|amount| amount.to_owned())
             .unwrap_or(Amount::ZERO)
     }
 
@@ -135,10 +135,10 @@ impl FlashbetMarketState {
 
     /// Add bet to a market
     pub async fn add_bet(&mut self, bet: Bet) {
-        let event_id = &bet.market_id.event_id;
+        let event_id = bet.event_id.clone();
 
         // Update pool for this outcome
-        let current_pool = self.get_pool_for_outcome(event_id, &bet.outcome).await;
+        let current_pool = self.get_pool_for_outcome(&event_id, &bet.outcome).await;
         let new_pool = current_pool
             .try_add(bet.amount)
             .expect("Pool overflow");
@@ -147,12 +147,12 @@ impl FlashbetMarketState {
             .expect("Failed to insert pool");
 
         // Update total pool
-        let current_total = self.get_total_pool(event_id).await;
+        let current_total = self.get_total_pool(&event_id).await;
         let new_total = current_total
             .try_add(bet.amount)
             .expect("Total pool overflow");
         self.total_pools
-            .insert(event_id, new_total)
+            .insert(&event_id, new_total)
             .expect("Failed to update total pool");
 
         // Store bet
@@ -163,14 +163,14 @@ impl FlashbetMarketState {
 
         // Increment bet count
         let current_count = self.bet_counts
-            .get(event_id)
+            .get(&event_id)
             .await
             .ok()
             .flatten()
-            .map(|c| c.into_owned())
+            .map(|c| c.to_owned())
             .unwrap_or(0);
         self.bet_counts
-            .insert(event_id, current_count + 1)
+            .insert(&event_id, current_count + 1)
             .expect("Failed to increment bet count");
     }
 
@@ -200,7 +200,7 @@ impl FlashbetMarketState {
         let mut bets = Vec::new();
         self.bets
             .for_each_index_value(|(bet_event_id, _bet_id), bet| {
-                if bet_event_id == event_id && &bet.outcome == outcome {
+                if bet_event_id == *event_id && &bet.outcome == outcome {
                     bets.push(bet.into_owned());
                 }
                 Ok(())
@@ -217,7 +217,7 @@ impl FlashbetMarketState {
             .await
             .ok()
             .flatten()
-            .map(|c| c.into_owned())
+            .map(|c| c.to_owned())
             .unwrap_or(0)
     }
 
@@ -227,7 +227,7 @@ impl FlashbetMarketState {
             return Amount::ZERO;
         }
 
-        let event_id = &bet.market_id.event_id;
+        let event_id = &bet.event_id;
         let total_pool = self.get_total_pool(event_id).await;
         let winning_pool = self.get_pool_for_outcome(event_id, winning_outcome).await;
 

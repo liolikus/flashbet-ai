@@ -52,6 +52,7 @@ impl Contract for FlashbetUserContract {
             Operation::PlaceBet {
                 market_chain,
                 market_id,
+                event_id,
                 outcome,
                 amount,
             } => {
@@ -82,6 +83,7 @@ impl Contract for FlashbetUserContract {
                 let bet = Bet {
                     bet_id,
                     market_id,
+                    event_id,
                     user: signer,
                     outcome,
                     amount,

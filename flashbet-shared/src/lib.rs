@@ -190,6 +190,8 @@ pub struct Bet {
     pub bet_id: u64,
     /// Market this bet is for
     pub market_id: MarketId,
+    /// Event ID for the market (for multi-market support)
+    pub event_id: EventId,
     /// User who placed the bet (account owner)
     pub user: AccountOwner,
     /// Chosen outcome
