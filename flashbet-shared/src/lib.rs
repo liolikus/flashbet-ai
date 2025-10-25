@@ -217,7 +217,8 @@ pub struct EventResult {
 }
 
 /// Payout information for a winning bet
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, SimpleObject, InputObject)]
+#[graphql(input_name = "PayoutInput")]
 pub struct Payout {
     /// Market that was resolved
     pub market_id: MarketId,

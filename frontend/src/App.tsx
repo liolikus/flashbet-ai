@@ -1,6 +1,7 @@
 import Layout from './components/Layout';
 import UserBalance from './components/UserBalance';
 import MarketsList from './components/MarketsList';
+import { OraclePanel } from './components/OraclePanel';
 
 function App() {
   return (
@@ -12,8 +13,21 @@ function App() {
         </div>
 
         {/* Main Content - Markets */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <MarketsList />
+
+          {/* Oracle Panel - For publishing results (admin/demo) */}
+          <div className="mt-8">
+            <OraclePanel
+              eventId="mlb_game_20251025_001"
+              homeTeam="Yankees"
+              awayTeam="Red Sox"
+              onResultPublished={() => {
+                console.log('Result published - refreshing market data...');
+                window.location.reload();
+              }}
+            />
+          </div>
         </div>
       </div>
     </Layout>

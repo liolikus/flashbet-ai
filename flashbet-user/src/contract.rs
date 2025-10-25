@@ -120,6 +120,36 @@ impl Contract for FlashbetUserContract {
                 self.runtime
                     .emit(StreamName::from(b"user_events".to_vec()), &UserEvent::Deposited { amount });
             }
+
+            Operation::ReceivePayout { payout } => {
+                // Wave 1: Frontend-triggered payout reception
+                // Same logic as execute_message Message::Payout handler
+
+                // 1. Credit the payout amount to balance
+                self.state.credit(payout.amount);
+
+                // 2. Remove from active bets
+                self.state
+                    .active_bets
+                    .remove(&payout.market_id)
+                    .expect("Failed to remove active bet");
+
+                // 3. Record payout in history
+                self.state
+                    .payout_history
+                    .insert(&payout.bet_id, payout.clone())
+                    .expect("Failed to insert payout history");
+
+                // 4. Emit event
+                self.runtime.emit(
+                    StreamName::from(b"user_events".to_vec()),
+                    &UserEvent::PayoutReceived {
+                        market_id: payout.market_id,
+                        bet_id: payout.bet_id,
+                        amount: payout.amount,
+                    },
+                );
+            }
         }
     }
 

@@ -56,6 +56,14 @@ pub enum Operation {
         bet: flashbet_shared::Bet,
     },
 
+    /// Process an oracle result and resolve the market
+    /// Wave 1: Called by frontend after oracle publishes result
+    /// Wave 2+: Will be triggered automatically via Oracle event subscription
+    ProcessOracleResult {
+        /// The event result from Oracle
+        result: flashbet_shared::EventResult,
+    },
+
     /// Subscribe to a User chain to receive bet events
     /// This enables cross-application event streaming
     SubscribeToUser {

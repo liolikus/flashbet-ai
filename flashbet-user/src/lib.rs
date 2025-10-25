@@ -42,6 +42,14 @@ pub enum Operation {
         /// Amount to deposit
         amount: Amount,
     },
+
+    /// Receive a payout from a resolved market
+    /// Wave 1: Called by frontend after market resolves
+    /// Wave 2+: Will be triggered automatically via Market messages
+    ReceivePayout {
+        /// The payout information
+        payout: Payout,
+    },
 }
 
 /// Messages sent/received by the User Chain

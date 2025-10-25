@@ -127,6 +127,12 @@ impl Contract for FlashbetMarketContract {
                 );
             }
 
+            Operation::ProcessOracleResult { result } => {
+                // Wave 1: Frontend-triggered oracle result processing
+                // Wave 2+: This will be triggered by Oracle event subscription
+                self.handle_oracle_result(result).await;
+            }
+
             Operation::SubscribeToUser { user_chain, user_app_id } => {
                 // Parse application ID
                 let user_app = user_app_id.parse::<linera_sdk::linera_base_types::ApplicationId>()
