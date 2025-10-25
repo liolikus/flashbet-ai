@@ -2,6 +2,8 @@ import { config } from './config';
 import * as mockSportsData from './api/mockSportsData';
 import * as liveOddsData from './api/liveOddsData';
 import { handleGameResult } from './oracle/publisher';
+import { getGamesNeedingMarkets } from './api/upcomingGames';
+import { createMarketsForGames } from './market/generator';
 
 // Select data provider based on configuration
 const dataProvider = config.dataMode === 'live' ? liveOddsData : mockSportsData;
@@ -39,9 +41,25 @@ class OracleWorker {
   async poll(): Promise<void> {
     try {
       const timestamp = new Date().toISOString();
-      console.log(`[${timestamp}] 🔍 Polling for finished games...`);
+      console.log(`[${timestamp}] 🔍 Polling for new games and results...`);
 
-      // Fetch finished games using selected data provider
+      // Step 1: Check for upcoming games and create markets (if enabled and in live mode)
+      if (config.enableAutoMarketCreation && config.dataMode === 'live') {
+        try {
+          console.log('\n🎯 Checking for new games to create markets...');
+          const gamesNeedingMarkets = await getGamesNeedingMarkets();
+          if (gamesNeedingMarkets.length > 0) {
+            await createMarketsForGames(gamesNeedingMarkets);
+          } else {
+            console.log('  ℹ️  No new markets needed\n');
+          }
+        } catch (error) {
+          console.error('❌ Error checking for new markets:', error);
+        }
+      }
+
+      // Step 2: Fetch finished games using selected data provider
+      console.log('🔍 Checking for completed games...');
       const finishedGames = await dataProvider.getFinishedGames();
 
       if (finishedGames.length === 0) {

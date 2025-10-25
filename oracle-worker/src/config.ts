@@ -21,6 +21,10 @@ export const config = {
   sportKey: process.env.SPORT_KEY || 'baseball_mlb',
   daysFrom: parseInt(process.env.DAYS_FROM || '3', 10),
 
+  // Market Generation
+  enableAutoMarketCreation: process.env.ENABLE_AUTO_MARKETS === 'true',
+  marketCreationLeadTime: parseInt(process.env.MARKET_LEAD_TIME || '86400000', 10), // 24h default
+
   // Worker Configuration
   pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS || '60000', 10),
   dataMode: (process.env.DATA_MODE || 'mock') as 'mock' | 'live',
@@ -57,4 +61,7 @@ console.log(`  - Market Chain: ${config.marketChainId}`);
 if (config.dataMode === 'live') {
   console.log(`  - Sport: ${config.sportKey}`);
   console.log(`  - Days From: ${config.daysFrom}`);
+}
+if (config.enableAutoMarketCreation) {
+  console.log(`  - Auto Markets: ENABLED (${config.marketCreationLeadTime / 3600000}h lead time)`);
 }
