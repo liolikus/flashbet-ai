@@ -36,7 +36,7 @@ export function OraclePanel({ eventId, homeTeam, awayTeam, onResultPublished }: 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               query: `mutation {
-                authorizeOracle(oracle: "${APP_IDS.USER_ACCOUNT_OWNER}")
+                authorizeOracle(oracle: "${APP_IDS.ORACLE_ACCOUNT_OWNER}")
               }`,
             }),
           }
@@ -149,15 +149,21 @@ export function OraclePanel({ eventId, homeTeam, awayTeam, onResultPublished }: 
           const betAmount = parseFloat(bet.amount);
 
           // Calculate payout: (betAmount / winningPool) * totalPool
-          let payoutAmount = totalPool; // If only one winner, gets entire pool
-          if (winningPool > 0 && winningBets.length > 1) {
+          // This formula works for both single and multiple winners
+          let payoutAmount = 0;
+          if (winningPool > 0) {
             payoutAmount = (betAmount / winningPool) * totalPool;
           }
 
           // Round to avoid floating point issues
           const payoutAmountStr = Math.floor(payoutAmount).toString();
 
-          console.log(`Distributing payout to bet ${bet.betId}: ${payoutAmountStr} attos`);
+          console.log(`Payout calculation for bet ${bet.betId}:`);
+          console.log(`  - Bet amount: ${betAmount} attos`);
+          console.log(`  - Total pool: ${totalPool} attos`);
+          console.log(`  - Winning pool: ${winningPool} attos`);
+          console.log(`  - Formula: (${betAmount} / ${winningPool}) × ${totalPool} = ${payoutAmount} attos`);
+          console.log(`  - Rounded payout: ${payoutAmountStr} attos`);
 
           // Send payout to User chain
           // Note: In Wave 1, we assume all bets are from same User chain (APP_IDS.CHAIN)

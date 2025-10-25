@@ -1,36 +1,16 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import UserBalance from './components/UserBalance';
-import MarketsList from './components/MarketsList';
-import { OraclePanel } from './components/OraclePanel';
+import HomePage from './pages/HomePage';
 
 function App() {
   return (
-    <Layout>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sidebar - User Info */}
-        <div className="lg:col-span-1">
-          <UserBalance />
-        </div>
-
-        {/* Main Content - Markets */}
-        <div className="lg:col-span-2 space-y-6">
-          <MarketsList />
-
-          {/* Oracle Panel - For publishing results (admin/demo) */}
-          <div className="mt-8">
-            <OraclePanel
-              eventId="mlb_game_20251025_001"
-              homeTeam="Yankees"
-              awayTeam="Red Sox"
-              onResultPublished={() => {
-                console.log('Result published - refreshing market data...');
-                window.location.reload();
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </Layout>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
