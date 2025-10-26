@@ -23,16 +23,17 @@ export const client = new ApolloClient({
   },
 });
 
-// Application IDs from deployment (separate chains for cross-chain messaging)
+// Application IDs from Conway Testnet deployment
 export const APP_IDS = {
-  CHAIN: 'fe63387ba41a621967b44bd078a03b1dd2821984c2c261fc93d97a01a1fdeefd', // User Chain
-  MARKET_CHAIN: '8287cb972a617fc1c648bcf4a8ed6dd9f61c9c80607bdd98055540447caf7786', // Market Chain (for queries and mutations)
-  ORACLE_CHAIN: '2ded66b2c1277f566a798343954aa0fb2297ed7f902d93de7cb7b6afe43e0299', // Oracle Chain
-  ORACLE: '0f6edebcb44f504990bd88fc3d1b52bf3eebf2c0bdf8eefd166eca3104c2be20',
-  MARKET: '330ea8d3ec250fc330736ec6777927633695d663a4a25205b7ce28bf00e2aa1b',
-  USER: '3fa8f32a8ab4ab58d254747dbbae7ef9a18edfee15200c1207b119db990c68eb',
-  // AccountOwner for User Chain (Wave 1: hardcoded for demo)
-  USER_ACCOUNT_OWNER: '0xdbc3e7d07b2175fdd625e68d670d772a4d232b4b938c2803e743e1959daf4f3f',
-  // AccountOwner for Oracle Chain (for authorizing oracle)
-  ORACLE_ACCOUNT_OWNER: '0xc0dbcca80ebf9fb8b776417568481fef9268fd99929f0886d4b96923f924bcf4',
+  // All applications deployed on same chain for Conway testnet
+  CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // User Chain (Conway)
+  MARKET_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // Market Chain (Conway)
+  ORACLE_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // Oracle Chain (Conway)
+  ORACLE: '90df46516a4f1537ebd3928d0021bbf2aea88b830bc95f0075cdf0ff086bafae', // Conway testnet
+  MARKET: '0e27ca73983601c97fb09317665cce3bb87c7a76658683d02ce53291f9af06d5', // Conway testnet
+  USER: '879942fa885b00a798a67c9d207f42d96496b73b51cd57a63fc020d403aaa798', // Conway testnet
+  // AccountOwner for Conway testnet
+  USER_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
+  // AccountOwner for Oracle Chain (same wallet owner)
+  ORACLE_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
 };

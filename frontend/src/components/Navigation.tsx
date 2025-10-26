@@ -4,11 +4,11 @@ export default function Navigation() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Sport', icon: '⚽', active: true },
-    { path: '#', label: 'Politics', icon: '🗳️', active: false },
-    { path: '#', label: 'Trending', icon: '🔥', active: false },
-    { path: '#', label: 'Finance', icon: '📈', active: false },
-    { path: '#', label: 'Crypto', icon: '₿', active: false },
+    { path: '/', label: 'Sport', icon: '', active: true },
+    { path: '#', label: 'Politics', icon: '', active: false },
+    { path: '#', label: 'Trending', icon: '', active: false },
+    { path: '#', label: 'Finance', icon: '', active: false },
+    { path: '#', label: 'Crypto', icon: '', active: false },
   ];
 
   return (
