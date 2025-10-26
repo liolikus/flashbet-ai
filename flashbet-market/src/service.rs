@@ -41,56 +41,26 @@ impl Service for FlashbetMarketService {
     }
 
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
-        // Get the latest market's event_id (for backward compatibility)
-        // In multi-market mode, queries default to latest market unless event_id is specified
-        let latest_event_id = self.get_latest_market_event_id().await;
-
-        let event_id_for_query = match &latest_event_id {
-            Some(id) => id.clone(),
-            None => EventId::new("none".to_string()),
-        };
-
-        // Get market info (or default if no markets exist)
-        let (info, status, total_pool, home_pool, away_pool, draw_pool, bet_count) =
-            if latest_event_id.is_some() {
-                self.get_market_data(&event_id_for_query).await
-            } else {
-                // No markets exist yet - return defaults
-                (
-                    MarketInfo {
-                        event_id: EventId::new("none".to_string()),
-                        description: "No market created yet".to_string(),
-                        event_time: Timestamp::from(0),
-                        market_type: MarketType::MatchWinner,
-                        home_team: "N/A".to_string(),
-                        away_team: "N/A".to_string(),
-                    },
-                    MarketStatus::Open,
-                    Amount::ZERO,
-                    Amount::ZERO,
-                    Amount::ZERO,
-                    Amount::ZERO,
-                    0,
-                )
-            };
-
-        // Get all bets for this market
-        let all_bets = self.get_market_bets(&event_id_for_query).await;
-
-        // Get list of all market event IDs
+        // Get all market IDs
         let all_market_ids = self.get_all_market_ids().await;
+
+        // Pre-fetch data for all markets
+        let mut markets_data = std::collections::HashMap::new();
+        for event_id_str in &all_market_ids {
+            let event_id = EventId::new(event_id_str.clone());
+            let data = self.get_market_data(&event_id).await;
+            let bets = self.get_market_bets(&event_id).await;
+            markets_data.insert(event_id_str.clone(), (data, bets));
+        }
+
+        // Get latest market event ID for default queries
+        let latest_event_id = self.get_latest_market_event_id().await;
 
         Schema::build(
             QueryRoot {
-                info,
-                status,
-                total_pool,
-                home_pool,
-                away_pool,
-                draw_pool,
-                all_bets,
-                bet_count,
                 all_market_ids,
+                markets_data,
+                latest_event_id,
             },
             Operation::mutation_root(self.runtime.clone()),
             EmptySubscription,
@@ -171,125 +141,213 @@ impl FlashbetMarketService {
     }
 }
 
+type MarketData = (MarketInfo, MarketStatus, Amount, Amount, Amount, Amount, u64);
+
 struct QueryRoot {
-    info: MarketInfo,
-    status: MarketStatus,
-    total_pool: Amount,
-    home_pool: Amount,
-    away_pool: Amount,
-    draw_pool: Amount,
-    all_bets: Vec<Bet>,
-    bet_count: u64,
     all_market_ids: Vec<String>,
+    markets_data: std::collections::HashMap<String, (MarketData, Vec<Bet>)>,
+    latest_event_id: Option<EventId>,
 }
 
 #[Object]
 impl QueryRoot {
-    /// Get event ID (defaults to latest market)
-    async fn event_id(&self) -> String {
-        self.info.event_id.0.clone()
+    /// Get event ID (optionally specify eventId, defaults to latest market)
+    async fn event_id(&self, event_id: Option<String>) -> String {
+        self.resolve_event_id(event_id)
     }
 
-    /// Get market description (defaults to latest market)
-    async fn description(&self) -> String {
-        self.info.description.clone()
+    /// Get market description (optionally specify eventId, defaults to latest market)
+    async fn description(&self, event_id: Option<String>) -> String {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((info, _, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            info.description.clone()
+        } else {
+            "Market not found".to_string()
+        }
     }
 
-    /// Get home team name (defaults to latest market)
-    async fn home_team(&self) -> String {
-        self.info.home_team.clone()
+    /// Get home team name (optionally specify eventId, defaults to latest market)
+    async fn home_team(&self, event_id: Option<String>) -> String {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((info, _, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            info.home_team.clone()
+        } else {
+            "N/A".to_string()
+        }
     }
 
-    /// Get away team name (defaults to latest market)
-    async fn away_team(&self) -> String {
-        self.info.away_team.clone()
+    /// Get away team name (optionally specify eventId, defaults to latest market)
+    async fn away_team(&self, event_id: Option<String>) -> String {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((info, _, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            info.away_team.clone()
+        } else {
+            "N/A".to_string()
+        }
     }
 
-    /// Get event time (as microseconds since epoch, defaults to latest market)
-    async fn event_time(&self) -> u64 {
-        self.info.event_time.micros()
+    /// Get event time (as microseconds since epoch, optionally specify eventId, defaults to latest market)
+    async fn event_time(&self, event_id: Option<String>) -> u64 {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((info, _, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            info.event_time.micros()
+        } else {
+            0
+        }
     }
 
-    /// Get current market status (as string, defaults to latest market)
-    async fn status(&self) -> String {
-        format!("{:?}", self.status)
+    /// Get current market status (as string, optionally specify eventId, defaults to latest market)
+    async fn status(&self, event_id: Option<String>) -> String {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, status, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            format!("{:?}", status)
+        } else {
+            "Open".to_string()
+        }
     }
 
-    /// Check if market is resolved (defaults to latest market)
-    async fn is_resolved(&self) -> bool {
-        matches!(self.status, MarketStatus::Resolved(_))
+    /// Check if market is resolved (optionally specify eventId, defaults to latest market)
+    async fn is_resolved(&self, event_id: Option<String>) -> bool {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, status, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            matches!(status, MarketStatus::Resolved(_))
+        } else {
+            false
+        }
     }
 
-    /// Check if market is open for betting (defaults to latest market)
-    async fn is_open(&self) -> bool {
-        matches!(self.status, MarketStatus::Open)
+    /// Check if market is open for betting (optionally specify eventId, defaults to latest market)
+    async fn is_open(&self, event_id: Option<String>) -> bool {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, status, _, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            matches!(status, MarketStatus::Open)
+        } else {
+            false
+        }
     }
 
-    /// Get total pool across all outcomes (defaults to latest market)
-    async fn total_pool(&self) -> Amount {
-        self.total_pool
+    /// Get total pool across all outcomes (optionally specify eventId, defaults to latest market)
+    async fn total_pool(&self, event_id: Option<String>) -> Amount {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, total_pool, _, _, _, _), _)) = self.markets_data.get(&target_id) {
+            *total_pool
+        } else {
+            Amount::ZERO
+        }
     }
 
-    /// Get betting pool for Home outcome (defaults to latest market)
-    async fn home_pool(&self) -> Amount {
-        self.home_pool
+    /// Get betting pool for Home outcome (optionally specify eventId, defaults to latest market)
+    async fn home_pool(&self, event_id: Option<String>) -> Amount {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, _, home_pool, _, _, _), _)) = self.markets_data.get(&target_id) {
+            *home_pool
+        } else {
+            Amount::ZERO
+        }
     }
 
-    /// Get betting pool for Away outcome (defaults to latest market)
-    async fn away_pool(&self) -> Amount {
-        self.away_pool
+    /// Get betting pool for Away outcome (optionally specify eventId, defaults to latest market)
+    async fn away_pool(&self, event_id: Option<String>) -> Amount {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, _, _, away_pool, _, _), _)) = self.markets_data.get(&target_id) {
+            *away_pool
+        } else {
+            Amount::ZERO
+        }
     }
 
-    /// Get betting pool for Draw outcome (defaults to latest market)
-    async fn draw_pool(&self) -> Amount {
-        self.draw_pool
+    /// Get betting pool for Draw outcome (optionally specify eventId, defaults to latest market)
+    async fn draw_pool(&self, event_id: Option<String>) -> Amount {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, _, _, _, draw_pool, _), _)) = self.markets_data.get(&target_id) {
+            *draw_pool
+        } else {
+            Amount::ZERO
+        }
     }
 
-    /// Get all bets placed on this market (defaults to latest market)
-    async fn all_bets(&self) -> &Vec<Bet> {
-        &self.all_bets
+    /// Get all bets placed on this market (optionally specify eventId, defaults to latest market)
+    async fn all_bets(&self, event_id: Option<String>) -> Vec<Bet> {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some((_, bets)) = self.markets_data.get(&target_id) {
+            bets.clone()
+        } else {
+            Vec::new()
+        }
     }
 
-    /// Get total number of bets placed (defaults to latest market)
-    async fn bet_count(&self) -> u64 {
-        self.bet_count
+    /// Get total number of bets placed (optionally specify eventId, defaults to latest market)
+    async fn bet_count(&self, event_id: Option<String>) -> u64 {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, _, _, _, _, bet_count), _)) = self.markets_data.get(&target_id) {
+            *bet_count
+        } else {
+            0
+        }
     }
 
-    /// Get odds for Home outcome (defaults to latest market)
-    async fn home_odds(&self) -> f64 {
-        if self.home_pool > Amount::ZERO {
-            let total: u128 = self.total_pool.into();
-            let home: u128 = self.home_pool.into();
-            (total as f64) / (home as f64)
+    /// Get odds for Home outcome (optionally specify eventId, defaults to latest market)
+    async fn home_odds(&self, event_id: Option<String>) -> f64 {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, total_pool, home_pool, _, _, _), _)) = self.markets_data.get(&target_id) {
+            if *home_pool > Amount::ZERO {
+                let total: u128 = (*total_pool).into();
+                let home: u128 = (*home_pool).into();
+                (total as f64) / (home as f64)
+            } else {
+                1.0
+            }
         } else {
             1.0
         }
     }
 
-    /// Get odds for Away outcome (defaults to latest market)
-    async fn away_odds(&self) -> f64 {
-        if self.away_pool > Amount::ZERO {
-            let total: u128 = self.total_pool.into();
-            let away: u128 = self.away_pool.into();
-            (total as f64) / (away as f64)
+    /// Get odds for Away outcome (optionally specify eventId, defaults to latest market)
+    async fn away_odds(&self, event_id: Option<String>) -> f64 {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, total_pool, _, away_pool, _, _), _)) = self.markets_data.get(&target_id) {
+            if *away_pool > Amount::ZERO {
+                let total: u128 = (*total_pool).into();
+                let away: u128 = (*away_pool).into();
+                (total as f64) / (away as f64)
+            } else {
+                1.0
+            }
         } else {
             1.0
         }
     }
 
-    /// Get odds for Draw outcome (defaults to latest market)
-    async fn draw_odds(&self) -> f64 {
-        if self.draw_pool > Amount::ZERO {
-            let total: u128 = self.total_pool.into();
-            let draw: u128 = self.draw_pool.into();
-            (total as f64) / (draw as f64)
+    /// Get odds for Draw outcome (optionally specify eventId, defaults to latest market)
+    async fn draw_odds(&self, event_id: Option<String>) -> f64 {
+        let target_id = self.resolve_event_id(event_id);
+        if let Some(((_, _, total_pool, _, _, draw_pool, _), _)) = self.markets_data.get(&target_id) {
+            if *draw_pool > Amount::ZERO {
+                let total: u128 = (*total_pool).into();
+                let draw: u128 = (*draw_pool).into();
+                (total as f64) / (draw as f64)
+            } else {
+                1.0
+            }
         } else {
             1.0
         }
     }
 
     /// Get list of all market event IDs
-    async fn all_markets(&self) -> &Vec<String> {
-        &self.all_market_ids
+    async fn all_markets(&self) -> Vec<String> {
+        self.all_market_ids.clone()
+    }
+}
+
+impl QueryRoot {
+    /// Helper: resolve eventId parameter to actual String (defaults to latest)
+    fn resolve_event_id(&self, event_id: Option<String>) -> String {
+        match event_id {
+            Some(id) => id,
+            None => self.latest_event_id.as_ref()
+                .map(|e| e.0.clone())
+                .unwrap_or_else(|| "none".to_string()),
+        }
     }
 }

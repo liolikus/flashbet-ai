@@ -6,11 +6,13 @@ import { APP_IDS } from '../config/apollo';
 
 const BASE_URL = 'http://localhost:8080';
 
+type MarketFilter = 'all' | 'active' | 'ended';
+
 export default function MarketsList() {
   const [markets, setMarkets] = useState<MarketState[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showMultiMarketInfo, setShowMultiMarketInfo] = useState(true);
+  const [filter, setFilter] = useState<MarketFilter>('all');
 
   const fetchMarkets = async () => {
     setLoading(true);
@@ -40,66 +42,73 @@ export default function MarketsList() {
           return;
         }
 
-        // For now, just fetch the latest market data (default behavior)
-        // In the future, we can fetch each market individually by eventId
-        const response = await fetch(
-          `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              query: `{
-                eventId
-                description
-                homeTeam
-                awayTeam
-                eventTime
-                status
-                isResolved
-                isOpen
-                totalPool
-                homePool
-                awayPool
-                drawPool
-                betCount
-                homeOdds
-                awayOdds
-                drawOdds
-              }`,
-            }),
+        // Fetch each market individually by eventId using parameterized queries
+        const marketStates: MarketState[] = [];
+
+        for (const eventId of marketIds) {
+          try {
+            const response = await fetch(
+              `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  query: `{
+                    eventId(eventId: "${eventId}")
+                    description(eventId: "${eventId}")
+                    homeTeam(eventId: "${eventId}")
+                    awayTeam(eventId: "${eventId}")
+                    eventTime(eventId: "${eventId}")
+                    status(eventId: "${eventId}")
+                    isResolved(eventId: "${eventId}")
+                    isOpen(eventId: "${eventId}")
+                    totalPool(eventId: "${eventId}")
+                    homePool(eventId: "${eventId}")
+                    awayPool(eventId: "${eventId}")
+                    drawPool(eventId: "${eventId}")
+                    betCount(eventId: "${eventId}")
+                    homeOdds(eventId: "${eventId}")
+                    awayOdds(eventId: "${eventId}")
+                    drawOdds(eventId: "${eventId}")
+                  }`,
+                }),
+              }
+            );
+
+            const data = await response.json();
+            console.log(`Market data for ${eventId}:`, data);
+
+            if (data.data) {
+              const rawData = data.data;
+              const marketState: MarketState = {
+                info: {
+                  marketId: rawData.eventId || '0',
+                  eventId: rawData.eventId || '',
+                  description: rawData.description || 'Unknown Market',
+                  closeTime: rawData.eventTime || 0,
+                  eventTime: rawData.eventTime || 0,
+                  homeTeam: rawData.homeTeam,
+                  awayTeam: rawData.awayTeam,
+                },
+                status: rawData.status || 'Open',
+                pools: {
+                  Home: rawData.homePool || '0',
+                  Away: rawData.awayPool || '0',
+                  Draw: rawData.drawPool || '0',
+                },
+                totalPool: rawData.totalPool || '0',
+                betCount: rawData.betCount || 0,
+                winningOutcome: rawData.isResolved ? undefined : undefined,
+              };
+              marketStates.push(marketState);
+            }
+          } catch (err) {
+            console.error(`Failed to fetch market ${eventId}:`, err);
+            // Continue with other markets
           }
-        );
-
-        const data = await response.json();
-        console.log('Market data:', data);
-
-        if (data.data) {
-          const rawData = data.data;
-          const marketState: MarketState = {
-            info: {
-              marketId: rawData.eventId || '0',
-              eventId: rawData.eventId || '',
-              description: rawData.description || 'Unknown Market',
-              closeTime: rawData.eventTime || 0,
-              eventTime: rawData.eventTime || 0,
-              homeTeam: rawData.homeTeam,
-              awayTeam: rawData.awayTeam,
-            },
-            status: rawData.status || 'Open',
-            pools: {
-              Home: rawData.homePool || '0',
-              Away: rawData.awayPool || '0',
-              Draw: rawData.drawPool || '0',
-            },
-            totalPool: rawData.totalPool || '0',
-            betCount: rawData.betCount || 0,
-            winningOutcome: rawData.isResolved ? undefined : undefined,
-          };
-          // For now, showing latest market but we have all IDs available
-          setMarkets([marketState]);
-        } else if (data.errors) {
-          setError(data.errors[0]?.message || 'Failed to load market');
         }
+
+        setMarkets(marketStates);
       } else if (allMarketsData.errors) {
         setError(allMarketsData.errors[0]?.message || 'Failed to load markets list');
       }
@@ -240,46 +249,81 @@ export default function MarketsList() {
     );
   }
 
+  // Filter markets based on status
+  const isMarketEnded = (market: MarketState) => {
+    return market.status.includes('Resolved') || market.status === 'Locked';
+  };
+
+  const filteredMarkets = markets.filter(market => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return !isMarketEnded(market);
+    if (filter === 'ended') return isMarketEnded(market);
+    return true;
+  });
+
+  const activeCount = markets.filter(m => !isMarketEnded(m)).length;
+  const endedCount = markets.filter(m => isMarketEnded(m)).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Active Markets ({markets.length})</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          Markets ({filteredMarkets.length})
+        </h2>
         <button onClick={fetchMarkets} className="btn-secondary text-sm">
           Refresh
         </button>
       </div>
 
-      {/* Multi-Market Info Banner */}
-      {showMultiMarketInfo && markets.length > 0 && (
-        <div className="card p-4" style={{ background: 'linear-gradient(135deg, hsl(var(--heroui-primary) / 0.1), hsl(var(--heroui-secondary) / 0.1))', border: '1px solid hsl(var(--heroui-primary) / 0.3)' }}>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">🎮</span>
-            <div className="flex-1">
-              <h3 className="font-semibold mb-1" style={{ color: 'hsl(var(--heroui-primary))' }}>
-                Multi-Market Architecture Active!
-              </h3>
-              <p className="text-sm mb-2" style={{ color: 'hsl(var(--heroui-foreground-600))' }}>
-                {markets.length} market{markets.length !== 1 ? 's' : ''} available! The system supports unlimited markets per chain,
-                each identified by a unique event ID. Oracle Worker auto-generates markets from live games.
-              </p>
-              <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
-                <strong>Status:</strong> ✅ allMarkets query working • Showing latest market ({markets[0]?.info.eventId})
-              </p>
-            </div>
-            <button
-              onClick={() => setShowMultiMarketInfo(false)}
-              className="text-sm px-2 py-1 hover:opacity-70"
-              style={{ color: 'hsl(var(--heroui-foreground-500))' }}
-            >
-              ✕
-            </button>
-          </div>
+      {/* Filter Buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'all'
+              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All ({markets.length})
+        </button>
+        <button
+          onClick={() => setFilter('active')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'active'
+              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Active ({activeCount})
+        </button>
+        <button
+          onClick={() => setFilter('ended')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            filter === 'ended'
+              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Ended ({endedCount})
+        </button>
+      </div>
+
+      {/* Market Cards - 2 Column Grid */}
+      {filteredMarkets.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredMarkets.map((market, index) => (
+            <MarketCard key={market.info.eventId || index} market={market} onPlaceBet={handlePlaceBet} />
+          ))}
+        </div>
+      ) : (
+        <div className="card text-center py-8">
+          <p className="text-gray-600 mb-2">No {filter} markets found</p>
+          <p className="text-sm text-gray-500">
+            Try selecting a different filter
+          </p>
         </div>
       )}
-
-      {markets.map((market, index) => (
-        <MarketCard key={market.info.eventId || index} market={market} onPlaceBet={handlePlaceBet} />
-      ))}
     </div>
   );
 }

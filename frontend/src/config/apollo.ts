@@ -28,9 +28,9 @@ export const APP_IDS = {
   CHAIN: 'fe63387ba41a621967b44bd078a03b1dd2821984c2c261fc93d97a01a1fdeefd', // User Chain
   MARKET_CHAIN: '8287cb972a617fc1c648bcf4a8ed6dd9f61c9c80607bdd98055540447caf7786', // Market Chain (for queries and mutations)
   ORACLE_CHAIN: '2ded66b2c1277f566a798343954aa0fb2297ed7f902d93de7cb7b6afe43e0299', // Oracle Chain
-  ORACLE: '6d14514bfbf346ccb389edbae0f9c3b61377f79e80a5b856dc2b84a8e1ab1046',
-  MARKET: 'e241c3a5c921671348f1c9e81d655a70a998230b66b99a5892a8f17919153e28',
-  USER: '3311a15e9689497048fa44289ca1e813506ba2abdcf4cf44288df31c51049edf',
+  ORACLE: '0f6edebcb44f504990bd88fc3d1b52bf3eebf2c0bdf8eefd166eca3104c2be20',
+  MARKET: '330ea8d3ec250fc330736ec6777927633695d663a4a25205b7ce28bf00e2aa1b',
+  USER: '3fa8f32a8ab4ab58d254747dbbae7ef9a18edfee15200c1207b119db990c68eb',
   // AccountOwner for User Chain (Wave 1: hardcoded for demo)
   USER_ACCOUNT_OWNER: '0xdbc3e7d07b2175fdd625e68d670d772a4d232b4b938c2803e743e1959daf4f3f',
   // AccountOwner for Oracle Chain (for authorizing oracle)

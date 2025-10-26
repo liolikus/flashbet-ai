@@ -32,46 +32,46 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
   };
 
   return (
-    <div className="card hover:shadow-lg transition-shadow">
+    <div className="card hover:shadow-lg transition-shadow" style={{ padding: '0.875rem' }}>
       {/* Market Header */}
-      <div className="mb-4">
-        <div className="flex items-start justify-between mb-2">
+      <div className="mb-2">
+        <div className="flex items-start justify-between mb-1">
           <div>
-            <h3 className="text-lg font-semibold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
+            <h3 className="text-base font-semibold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
               {market.info.description}
             </h3>
-            <p className="text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>ID: {market.info.marketId}</p>
+            <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>ID: {market.info.marketId}</p>
           </div>
-          <span className={`status-${market.status.toLowerCase()}`}>
+          <span className={`status-${market.status.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
             {market.status}
           </span>
         </div>
 
         {/* Event Info */}
-        <div className="flex items-center space-x-4 text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
+        <div className="flex items-center space-x-2 text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
           <span>📅 {formatRelativeTime(market.info.eventTime)}</span>
           <span>🔒 Closes {formatRelativeTime(market.info.closeTime)}</span>
         </div>
       </div>
 
       {/* Pool Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-4 p-3 rounded-lg" style={{ background: 'hsl(var(--heroui-content2))' }}>
+      <div className="grid grid-cols-2 gap-2 mb-2 p-2 rounded-lg" style={{ background: 'hsl(var(--heroui-content2))' }}>
         <div>
-          <div className="text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Total Pool</div>
-          <div className="text-lg font-bold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
+          <div className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Total Pool</div>
+          <div className="text-sm font-bold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
             {formatAmount(market.totalPool)} tokens
           </div>
         </div>
         <div>
-          <div className="text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Total Bets</div>
-          <div className="text-lg font-bold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
+          <div className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Total Bets</div>
+          <div className="text-sm font-bold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
             {market.betCount}
           </div>
         </div>
       </div>
 
       {/* Outcomes */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-1 mb-2">
         {Object.values(Outcome).map((outcome) => {
           const pool = market.pools[outcome] || '0';
           const isSelected = selectedOutcome === outcome;
@@ -82,16 +82,17 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
               onClick={() => isOpen && setSelectedOutcome(outcome)}
               disabled={!isOpen}
               className={`outcome-button w-full ${isSelected ? 'selected' : ''}`}
+              style={{ padding: '0.5rem 0.75rem' }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium">{getOutcomeDisplay(outcome, market.info.homeTeam, market.info.awayTeam)}</span>
+                  <span className="font-medium text-sm">{getOutcomeDisplay(outcome, market.info.homeTeam, market.info.awayTeam)}</span>
                   {market.winningOutcome === outcome && (
-                    <span className="font-bold" style={{ color: 'hsl(var(--heroui-success))' }}>✓ Winner</span>
+                    <span className="font-bold text-xs" style={{ color: 'hsl(var(--heroui-success))' }}>✓ Winner</span>
                   )}
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold" style={{ color: 'hsl(var(--heroui-primary))' }}>
+                  <div className="text-base font-bold" style={{ color: 'hsl(var(--heroui-primary))' }}>
                     {odds[outcome].toFixed(2)}x
                   </div>
                   <div className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
@@ -106,8 +107,8 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
 
       {/* Bet Form */}
       {isOpen && selectedOutcome && (
-        <div className="border-t pt-4" style={{ borderColor: 'hsl(var(--heroui-default-200))' }}>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'hsl(var(--heroui-foreground))' }}>
+        <div className="border-t pt-2 mt-2" style={{ borderColor: 'hsl(var(--heroui-default-200))' }}>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'hsl(var(--heroui-foreground))' }}>
             Bet Amount for {getOutcomeDisplay(selectedOutcome, market.info.homeTeam, market.info.awayTeam)}
           </label>
           <div className="flex space-x-2">
@@ -117,6 +118,7 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
               onChange={(e) => setBetAmount(e.target.value)}
               placeholder="Enter amount"
               className="flex-1"
+              style={{ fontSize: '0.875rem', padding: '0.375rem 0.5rem' }}
               min="0"
               step="0.01"
             />
@@ -124,12 +126,13 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
               onClick={handlePlaceBet}
               disabled={placing || !betAmount}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ fontSize: '0.875rem', padding: '0.375rem 0.75rem' }}
             >
               {placing ? 'Placing...' : 'Place Bet'}
             </button>
           </div>
           {betAmount && (
-            <p className="text-sm mt-2" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
+            <p className="text-xs mt-1" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
               Potential payout: {(parseFloat(betAmount) * odds[selectedOutcome]).toFixed(2)} tokens
               (at current odds)
             </p>
@@ -138,7 +141,7 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
       )}
 
       {!isOpen && (
-        <div className="text-center py-4" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
+        <div className="text-center py-2 text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
           {market.status === 'Resolved' && market.winningOutcome
             ? `Market resolved - ${getOutcomeDisplay(market.winningOutcome, market.info.homeTeam, market.info.awayTeam)} won!`
             : `Market is ${market.status.toLowerCase()}`}
