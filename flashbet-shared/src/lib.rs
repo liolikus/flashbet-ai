@@ -364,14 +364,25 @@ pub enum FlashBetError {
 // Helper Functions
 // ============================================================================
 
-/// Validate event ID format (must start with sport prefix)
+/// Validate event ID format (flexible validation for any sport)
 pub fn validate_event_id(event_id: &EventId) -> Result<(), FlashBetError> {
     let id = &event_id.0;
-    if id.starts_with("mlb_") || id.starts_with("nba_") || id.starts_with("nfl_") {
-        Ok(())
-    } else {
-        Err(FlashBetError::InvalidEventId(id.clone()))
+
+    // Basic validation: non-empty, reasonable length, alphanumeric + underscores
+    if id.is_empty() {
+        return Err(FlashBetError::InvalidEventId("Event ID cannot be empty".to_string()));
     }
+
+    if id.len() > 100 {
+        return Err(FlashBetError::InvalidEventId("Event ID too long (max 100 chars)".to_string()));
+    }
+
+    // Allow alphanumeric characters, underscores, and hyphens
+    if !id.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+        return Err(FlashBetError::InvalidEventId("Event ID must contain only alphanumeric, underscore, or hyphen characters".to_string()));
+    }
+
+    Ok(())
 }
 
 /// Validate outcome is valid for market type
@@ -395,9 +406,19 @@ mod tests {
 
     #[test]
     fn test_event_id_validation() {
+        // Valid event IDs (any sport, alphanumeric + underscores/hyphens)
         assert!(validate_event_id(&EventId::new("mlb_game_001")).is_ok());
         assert!(validate_event_id(&EventId::new("nba_game_001")).is_ok());
-        assert!(validate_event_id(&EventId::new("invalid_001")).is_err());
+        assert!(validate_event_id(&EventId::new("nfl_game_001")).is_ok());
+        assert!(validate_event_id(&EventId::new("epl_mancity_arsenal_2025")).is_ok());
+        assert!(validate_event_id(&EventId::new("nhl_leafs_bruins_2025")).is_ok());
+        assert!(validate_event_id(&EventId::new("cricket_india-australia")).is_ok());
+
+        // Invalid event IDs
+        assert!(validate_event_id(&EventId::new("")).is_err()); // Empty
+        assert!(validate_event_id(&EventId::new("event with spaces")).is_err()); // Spaces
+        assert!(validate_event_id(&EventId::new("event@special!chars")).is_err()); // Special chars
+        assert!(validate_event_id(&EventId::new(&"x".repeat(101))).is_err()); // Too long
     }
 
     #[test]

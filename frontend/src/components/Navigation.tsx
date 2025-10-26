@@ -4,11 +4,11 @@ export default function Navigation() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Sport', icon: '', active: true },
-    { path: '#', label: 'Politics', icon: '', active: false },
-    { path: '#', label: 'Trending', icon: '', active: false },
-    { path: '#', label: 'Finance', icon: '', active: false },
-    { path: '#', label: 'Crypto', icon: '', active: false },
+    { id: 'sport', path: '/', label: 'Sport', active: true },
+    { id: 'politics', path: '#politics', label: 'Politics', active: false },
+    { id: 'trending', path: '#trending', label: 'Trending', active: false },
+    { id: 'finance', path: '#finance', label: 'Finance', active: false },
+    { id: 'crypto', path: '#crypto', label: 'Crypto', active: false },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function Navigation() {
 
                 return (
                   <Link
-                    key={item.path}
+                    key={item.id}
                     to={isInactive ? '#' : item.path}
                     className="px-4 py-2 rounded-lg transition-all"
                     style={{
@@ -74,7 +74,6 @@ export default function Navigation() {
                       }
                     }}
                   >
-                    <span className="mr-2">{item.icon}</span>
                     {item.label}
                   </Link>
                 );

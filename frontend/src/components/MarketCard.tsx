@@ -6,12 +6,14 @@ import { formatAmount, calculateOdds, getOutcomeDisplay, formatRelativeTime } fr
 interface MarketCardProps {
   market: MarketState;
   onPlaceBet: (marketId: string, outcome: OutcomeType, amount: string) => Promise<void>;
+  onCloseMarket: (eventId: string) => Promise<void>;
 }
 
-export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
+export default function MarketCard({ market, onPlaceBet, onCloseMarket }: MarketCardProps) {
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeType | null>(null);
   const [betAmount, setBetAmount] = useState('');
   const [placing, setPlacing] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const odds = calculateOdds(market.pools, market.totalPool);
   const isOpen = market.status === 'Open';
@@ -31,6 +33,17 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
     }
   };
 
+  const handleCloseMarket = async () => {
+    setClosing(true);
+    try {
+      await onCloseMarket(market.info.eventId);
+    } catch (error) {
+      console.error('Market close failed:', error);
+    } finally {
+      setClosing(false);
+    }
+  };
+
   return (
     <div className="card hover:shadow-lg transition-shadow" style={{ padding: '0.875rem' }}>
       {/* Market Header */}
@@ -42,9 +55,22 @@ export default function MarketCard({ market, onPlaceBet }: MarketCardProps) {
             </h3>
             <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>ID: {market.info.marketId}</p>
           </div>
-          <span className={`status-${market.status.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
-            {market.status}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`status-${market.status.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+              {market.status}
+            </span>
+            {isOpen && (
+              <button
+                onClick={handleCloseMarket}
+                disabled={closing}
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                title="Resolve market with random outcome (demo)"
+              >
+                {closing ? '⚡...' : '⚡ Resolve'}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Event Info */}

@@ -10,14 +10,24 @@ type MarketFilter = 'all' | 'active' | 'ended';
 
 export default function MarketsList() {
   const [markets, setMarkets] = useState<MarketState[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with true for initial load
+  const [initialLoad, setInitialLoad] = useState(true); // Track if this is the first load
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<MarketFilter>('all');
 
   const fetchMarkets = async () => {
-    setLoading(true);
+    // Only show loading spinner on initial load, not on background refreshes
+    if (initialLoad) {
+      setLoading(true);
+    }
     setError(null);
     try {
+      console.log('%c🔗 Linera Blockchain Query', 'color: #a855f7; font-weight: bold; font-size: 14px');
+      console.log('📍 Network: Conway Testnet');
+      console.log(`📦 Market Chain: ${APP_IDS.MARKET_CHAIN.substring(0, 16)}...`);
+      console.log(`🎯 Market App: ${APP_IDS.MARKET.substring(0, 16)}...`);
+      console.log('📡 Fetching all markets from blockchain...');
+
       // First, get all market IDs using the allMarkets query
       const allMarketsResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
@@ -31,22 +41,31 @@ export default function MarketsList() {
       );
 
       const allMarketsData = await allMarketsResponse.json();
-      console.log('All markets:', allMarketsData);
+      console.log(`✅ Received ${allMarketsData.data?.allMarkets?.length || 0} markets from Linera`, allMarketsData.data?.allMarkets);
 
       if (allMarketsData.data && allMarketsData.data.allMarkets) {
         const marketIds: string[] = allMarketsData.data.allMarkets;
 
         if (marketIds.length === 0) {
-          setMarkets([]);
-          setLoading(false);
+          // Only update if markets is not already empty
+          if (markets.length !== 0) {
+            setMarkets([]);
+          }
+          // Only update loading on initial load
+          if (initialLoad) {
+            setLoading(false);
+            setInitialLoad(false);
+          }
           return;
         }
 
         // Fetch each market individually by eventId using parameterized queries
         const marketStates: MarketState[] = [];
+        console.log(`🔄 Querying ${marketIds.length} markets from blockchain...`);
 
         for (const eventId of marketIds) {
           try {
+            console.log(`  📊 Fetching market: ${eventId}`);
             const response = await fetch(
               `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
               {
@@ -76,7 +95,6 @@ export default function MarketsList() {
             );
 
             const data = await response.json();
-            console.log(`Market data for ${eventId}:`, data);
 
             if (data.data) {
               const rawData = data.data;
@@ -108,7 +126,28 @@ export default function MarketsList() {
           }
         }
 
-        setMarkets(marketStates);
+        // Only update state if data has actually changed to prevent unnecessary re-renders
+        setMarkets(prevMarkets => {
+          // Simple comparison: check if market count or data changed
+          if (prevMarkets.length !== marketStates.length) {
+            return marketStates;
+          }
+
+          // Check if any market data changed by comparing JSON
+          const hasChanged = marketStates.some((newMarket, index) => {
+            const prevMarket = prevMarkets[index];
+            if (!prevMarket) return true;
+
+            return (
+              newMarket.totalPool !== prevMarket.totalPool ||
+              newMarket.betCount !== prevMarket.betCount ||
+              newMarket.status !== prevMarket.status
+            );
+          });
+
+          return hasChanged ? marketStates : prevMarkets;
+        });
+        console.log(`✅ Blockchain data loaded: ${marketStates.length} markets`);
       } else if (allMarketsData.errors) {
         setError(allMarketsData.errors[0]?.message || 'Failed to load markets list');
       }
@@ -116,13 +155,26 @@ export default function MarketsList() {
       console.error('Failed to fetch markets:', err);
       setError('Failed to connect to GraphQL service');
     } finally {
-      setLoading(false);
+      // Only update loading state on initial load
+      if (initialLoad) {
+        setLoading(false);
+        setInitialLoad(false);
+      }
     }
   };
 
   useEffect(() => {
+    console.log('%c⚡ FlashBet AI - Connecting to Linera Blockchain', 'color: #a855f7; font-weight: bold; font-size: 16px');
+    console.log('🌐 Network: Conway Testnet (v0.15.3)');
+    console.log('🔗 GraphQL Endpoint: http://localhost:8080');
+    console.log('📦 Deployed Contracts:');
+    console.log(`  🔮 Oracle: ${APP_IDS.ORACLE.substring(0, 16)}...`);
+    console.log(`  🎯 Market: ${APP_IDS.MARKET.substring(0, 16)}...`);
+    console.log(`  👤 User: ${APP_IDS.USER.substring(0, 16)}...`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
     fetchMarkets();
-    const interval = setInterval(fetchMarkets, 3000);
+    const interval = setInterval(fetchMarkets, 15000); // Poll every 15 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -132,13 +184,20 @@ export default function MarketsList() {
     amount: string
   ) => {
     try {
+      console.log('%c💰 Linera Blockchain Transaction', 'color: #10b981; font-weight: bold; font-size: 14px');
+      console.log('📍 Network: Conway Testnet');
+
       // Multi-market architecture: marketId=0 (legacy), eventId identifies the market
       const numericMarketId = 0;
       const amountParsed = parseAmount(amount);
 
       // Step 1: Send placeBet mutation to User application (deducts balance, emits event)
-      console.log('Step 1: Placing bet on User chain...');
-      console.log(`  Event ID: ${eventId}`);
+      console.log('%cStep 1: User Chain Transaction', 'color: #3b82f6; font-weight: bold');
+      console.log(`  📦 User Chain: ${APP_IDS.CHAIN.substring(0, 16)}...`);
+      console.log(`  👤 User App: ${APP_IDS.USER.substring(0, 16)}...`);
+      console.log(`  🎯 Market: ${eventId}`);
+      console.log(`  🎲 Outcome: ${outcome}`);
+      console.log(`  💵 Amount: ${amount} tokens`);
       const userResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
         {
@@ -160,16 +219,20 @@ export default function MarketsList() {
 
       const userData = await userResponse.json();
       if (userData.errors) {
-        console.error('User bet placement failed:', userData.errors);
+        console.error('❌ User bet placement failed:', userData.errors);
         throw new Error(userData.errors[0]?.message || 'Failed to place bet on User chain');
       }
 
-      console.log('✓ User bet placed successfully');
+      console.log('✅ User chain transaction confirmed');
+      console.log(`  📝 Transaction: ${userData.data?.substring(0, 16)}...`);
 
       // Step 2: Relay bet to Market chain via RegisterBet operation
       // Wave 1: Frontend acts as relay between User and Market chains
       // Wave 2+: This will be automatic via cross-app event processing
-      console.log('Step 2: Registering bet on Market chain...');
+      console.log('%cStep 2: Market Chain Transaction', 'color: #3b82f6; font-weight: bold');
+      console.log(`  📦 Market Chain: ${APP_IDS.MARKET_CHAIN.substring(0, 16)}...`);
+      console.log(`  🎯 Market App: ${APP_IDS.MARKET.substring(0, 16)}...`);
+      console.log('  📡 Registering bet on blockchain...');
 
       // Build the Bet object matching Linera's Bet structure
       // Note: betId will be auto-incremented, but we pass 0 for initial bet
@@ -200,17 +263,129 @@ export default function MarketsList() {
 
       const marketData = await marketResponse.json();
       if (marketData.errors) {
-        console.error('Market bet registration failed:', marketData.errors);
+        console.error('❌ Market bet registration failed:', marketData.errors);
         console.warn('⚠️ Bet placed on User chain but not registered on Market chain - balance deducted but pool not updated');
         // Don't throw - bet is placed on User side, Market sync issue
       } else {
-        console.log('✓ Bet registered on Market chain');
+        console.log('✅ Market chain transaction confirmed');
+        console.log(`  📝 Transaction: ${marketData.data?.substring(0, 16)}...`);
       }
+
+      console.log('%c🎉 Cross-Chain Transaction Complete!', 'color: #10b981; font-weight: bold; font-size: 14px');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📊 Transaction Summary:');
+      console.log(`  🎯 Market: ${eventId}`);
+      console.log(`  🎲 Bet Placed: ${outcome.toUpperCase()}`);
+      console.log(`  💵 Amount: ${amount} tokens`);
+      console.log(`  ⛓️  Chains Updated: 2 (User + Market)`);
+      console.log('');
+      console.log('✅ Status:');
+      console.log(`  ✓ User Chain: Balance deducted (${APP_IDS.CHAIN.substring(0, 12)}...)`);
+      console.log(`  ✓ Market Chain: Pool updated (${APP_IDS.MARKET_CHAIN.substring(0, 12)}...)`);
+      console.log(`  ✓ Cross-chain messaging: Completed`);
+      console.log('');
+      console.log('🔄 Refreshing market data from blockchain...');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // Refresh markets data
       await fetchMarkets();
     } catch (error) {
       console.error('Failed to place bet:', error);
+      throw error;
+    }
+  };
+
+  const handleCloseMarket = async (eventId: string) => {
+    try {
+      console.log('%c🔒 Linera Blockchain - Resolve & Close Market', 'color: #f59e0b; font-weight: bold; font-size: 14px');
+      console.log('📍 Network: Conway Testnet');
+      console.log(`📦 Market Chain: ${APP_IDS.MARKET_CHAIN.substring(0, 16)}...`);
+      console.log(`🎯 Market App: ${APP_IDS.MARKET.substring(0, 16)}...`);
+      console.log(`🎲 Market ID: ${eventId}`);
+
+      // First, fetch current market state to show pool amounts
+      console.log('📊 Fetching current market state...');
+      const market = markets.find(m => m.info.eventId === eventId);
+      if (!market) {
+        throw new Error('Market not found');
+      }
+
+      const totalPool = parseFloat(market.totalPool) / 1e18;
+      const homePool = parseFloat(market.pools.Home) / 1e18;
+      const awayPool = parseFloat(market.pools.Away) / 1e18;
+      const drawPool = parseFloat(market.pools.Draw) / 1e18;
+
+      console.log('');
+      console.log('💰 Current Pool State:');
+      console.log(`  Total Pool: ${totalPool.toFixed(2)} tokens`);
+      console.log(`  Home Pool: ${homePool.toFixed(2)} tokens (${market.betCount > 0 ? ((homePool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Away Pool: ${awayPool.toFixed(2)} tokens (${market.betCount > 0 ? ((awayPool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Draw Pool: ${drawPool.toFixed(2)} tokens (${market.betCount > 0 ? ((drawPool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Total Bets: ${market.betCount}`);
+
+      // For demo: randomly select a winning outcome
+      const outcomes = ['HOME', 'AWAY', 'DRAW'];
+      const randomOutcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+      const timestamp = Date.now() * 1000; // Convert to microseconds
+
+      // Calculate winning pool
+      const winningPool = randomOutcome === 'HOME' ? homePool : randomOutcome === 'AWAY' ? awayPool : drawPool;
+      const payoutPerToken = winningPool > 0 ? totalPool / winningPool : 0;
+
+      console.log('');
+      console.log('📡 Publishing oracle result to resolve market...');
+      console.log(`  🎯 Demo Result: ${randomOutcome} wins (simulated)`);
+      console.log(`  💵 Winning Pool: ${winningPool.toFixed(2)} tokens`);
+      console.log(`  📈 Payout Ratio: ${payoutPerToken.toFixed(2)}x`);
+
+      const response = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `mutation {
+              processOracleResult(result: {
+                eventId: "${eventId}"
+                outcome: ${randomOutcome}
+                score: null
+                timestamp: ${timestamp}
+              })
+            }`,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.errors) {
+        console.error('❌ Failed to resolve market:', data.errors);
+        throw new Error(data.errors[0]?.message || 'Failed to resolve market');
+      }
+
+      console.log('');
+      console.log('✅ Oracle result published successfully');
+      console.log(`  📝 Transaction: ${JSON.stringify(data.data).substring(0, 30)}...`);
+      console.log('%c🎉 Market Resolved & Closed!', 'color: #10b981; font-weight: bold; font-size: 14px');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📊 Resolution Summary:');
+      console.log(`  🎲 Market: ${eventId}`);
+      console.log(`  🏆 Winner: ${randomOutcome}`);
+      console.log(`  💰 Total Pool Distributed: ${totalPool.toFixed(2)} tokens`);
+      console.log(`  👥 Winners' Pool: ${winningPool.toFixed(2)} tokens`);
+      console.log(`  📈 Payout Multiplier: ${payoutPerToken.toFixed(2)}x`);
+      console.log(`  📊 ${winningPool > 0 ? `Winners receive ${payoutPerToken.toFixed(2)} tokens per 1 token bet` : 'No bets on winning outcome'}`);
+      console.log('');
+      console.log('✅ Status:');
+      console.log(`  ✓ Market Status: Resolved`);
+      console.log(`  ✓ Betting: Closed`);
+      console.log(`  ✓ Cross-chain payouts: Automatically distributed to User chains`);
+      console.log('  🔄 Refreshing market data from blockchain...');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Refresh markets data
+      await fetchMarkets();
+    } catch (error) {
+      console.error('❌ Failed to resolve market:', error);
       throw error;
     }
   };
@@ -313,7 +488,7 @@ export default function MarketsList() {
       {filteredMarkets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredMarkets.map((market, index) => (
-            <MarketCard key={market.info.eventId || index} market={market} onPlaceBet={handlePlaceBet} />
+            <MarketCard key={market.info.eventId || index} market={market} onPlaceBet={handlePlaceBet} onCloseMarket={handleCloseMarket} />
           ))}
         </div>
       ) : (

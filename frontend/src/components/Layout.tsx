@@ -24,11 +24,10 @@ export default function Layout({ children }: LayoutProps) {
         boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)'
       }}>
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between text-sm" style={{
+          <div className="flex items-center justify-center text-sm" style={{
             color: 'hsl(var(--heroui-foreground-500))',
             fontFamily: 'var(--font-body)'
           }}>
-            <p>Wave 2 MVP - Enhanced Web UI</p>
             <p style={{
               background: 'linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%)',
               WebkitBackgroundClip: 'text',
