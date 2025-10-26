@@ -61,7 +61,7 @@ export function OracleStatus() {
   // Add activity event
   const addActivity = (type: ActivityEvent['type'], message: string) => {
     const newEvent: ActivityEvent = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       type,
       message,
       timestamp: new Date(),

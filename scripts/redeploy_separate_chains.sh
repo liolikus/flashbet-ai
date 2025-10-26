@@ -68,7 +68,7 @@ echo -e "${YELLOW}[2/3]${NC} Deploying Market on chain $MARKET_CHAIN..."
 linera wallet set-default $MARKET_CHAIN > /dev/null
 MARKET_APP=$(linera --wait-for-outgoing-messages publish-and-create \
   target/wasm32-unknown-unknown/release/flashbet_market_{contract,service}.wasm \
-  --json-argument "{\"oracle_chain\":\"$ORACLE_CHAIN\"}")
+  --json-argument "{\"oracle_chain\":\"$ORACLE_CHAIN\",\"oracle_app_id\":\"$ORACLE_APP\"}")
 echo -e "${GREEN}✓ Market deployed${NC}"
 echo "  Chain: $MARKET_CHAIN"
 echo "  App:   $MARKET_APP"

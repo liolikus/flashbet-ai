@@ -7,75 +7,104 @@ import { APP_IDS } from '../config/apollo';
 const BASE_URL = 'http://localhost:8080';
 
 export default function MarketsList() {
-  const [market, setMarket] = useState<MarketState | null>(null);
+  const [markets, setMarkets] = useState<MarketState[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMultiMarketInfo, setShowMultiMarketInfo] = useState(true);
 
-  const fetchMarket = async () => {
+  const fetchMarkets = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Query Market application on Market chain
-      const response = await fetch(
+      // First, get all market IDs using the allMarkets query
+      const allMarketsResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            query: `{
-              eventId
-              description
-              homeTeam
-              awayTeam
-              eventTime
-              status
-              isResolved
-              isOpen
-              totalPool
-              homePool
-              awayPool
-              drawPool
-              betCount
-              homeOdds
-              awayOdds
-              drawOdds
-            }`,
+            query: `{ allMarkets }`,
           }),
         }
       );
 
-      const data = await response.json();
-      console.log('Market data:', data);
+      const allMarketsData = await allMarketsResponse.json();
+      console.log('All markets:', allMarketsData);
 
-      if (data.data) {
-        // Transform flat data to MarketState structure
-        const rawData = data.data;
-        const marketState: MarketState = {
-          info: {
-            marketId: rawData.eventId || '0',
-            eventId: rawData.eventId || '',
-            description: rawData.description || 'Unknown Market',
-            closeTime: rawData.eventTime || 0,
-            eventTime: rawData.eventTime || 0,
-            homeTeam: rawData.homeTeam,
-            awayTeam: rawData.awayTeam,
-          },
-          status: rawData.status || 'Open',
-          pools: {
-            Home: rawData.homePool || '0',
-            Away: rawData.awayPool || '0',
-            Draw: rawData.drawPool || '0',
-          },
-          totalPool: rawData.totalPool || '0',
-          betCount: rawData.betCount || 0,
-          winningOutcome: rawData.isResolved ? undefined : undefined, // TODO: Add winningOutcome to schema
-        };
-        setMarket(marketState);
-      } else if (data.errors) {
-        setError(data.errors[0]?.message || 'Failed to load market');
+      if (allMarketsData.data && allMarketsData.data.allMarkets) {
+        const marketIds: string[] = allMarketsData.data.allMarkets;
+
+        if (marketIds.length === 0) {
+          setMarkets([]);
+          setLoading(false);
+          return;
+        }
+
+        // For now, just fetch the latest market data (default behavior)
+        // In the future, we can fetch each market individually by eventId
+        const response = await fetch(
+          `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `{
+                eventId
+                description
+                homeTeam
+                awayTeam
+                eventTime
+                status
+                isResolved
+                isOpen
+                totalPool
+                homePool
+                awayPool
+                drawPool
+                betCount
+                homeOdds
+                awayOdds
+                drawOdds
+              }`,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        console.log('Market data:', data);
+
+        if (data.data) {
+          const rawData = data.data;
+          const marketState: MarketState = {
+            info: {
+              marketId: rawData.eventId || '0',
+              eventId: rawData.eventId || '',
+              description: rawData.description || 'Unknown Market',
+              closeTime: rawData.eventTime || 0,
+              eventTime: rawData.eventTime || 0,
+              homeTeam: rawData.homeTeam,
+              awayTeam: rawData.awayTeam,
+            },
+            status: rawData.status || 'Open',
+            pools: {
+              Home: rawData.homePool || '0',
+              Away: rawData.awayPool || '0',
+              Draw: rawData.drawPool || '0',
+            },
+            totalPool: rawData.totalPool || '0',
+            betCount: rawData.betCount || 0,
+            winningOutcome: rawData.isResolved ? undefined : undefined,
+          };
+          // For now, showing latest market but we have all IDs available
+          setMarkets([marketState]);
+        } else if (data.errors) {
+          setError(data.errors[0]?.message || 'Failed to load market');
+        }
+      } else if (allMarketsData.errors) {
+        setError(allMarketsData.errors[0]?.message || 'Failed to load markets list');
       }
     } catch (err) {
-      console.error('Failed to fetch market:', err);
+      console.error('Failed to fetch markets:', err);
       setError('Failed to connect to GraphQL service');
     } finally {
       setLoading(false);
@@ -83,23 +112,24 @@ export default function MarketsList() {
   };
 
   useEffect(() => {
-    fetchMarket();
-    const interval = setInterval(fetchMarket, 3000);
+    fetchMarkets();
+    const interval = setInterval(fetchMarkets, 3000);
     return () => clearInterval(interval);
   }, []);
 
   const handlePlaceBet = async (
-    _marketId: string, // eventId, not used - marketId is always 0 in Linera (one market per chain)
+    eventId: string, // Multi-market: eventId identifies which market
     outcome: Outcome,
     amount: string
   ) => {
     try {
-      // In Linera architecture, each market has its own chain, so marketId is always 0
+      // Multi-market architecture: marketId=0 (legacy), eventId identifies the market
       const numericMarketId = 0;
       const amountParsed = parseAmount(amount);
 
       // Step 1: Send placeBet mutation to User application (deducts balance, emits event)
       console.log('Step 1: Placing bet on User chain...');
+      console.log(`  Event ID: ${eventId}`);
       const userResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
         {
@@ -110,6 +140,7 @@ export default function MarketsList() {
               placeBet(
                 marketChain: "${APP_IDS.MARKET_CHAIN}"
                 marketId: ${numericMarketId}
+                eventId: "${eventId}"
                 outcome: ${outcome.toUpperCase()}
                 amount: "${amountParsed}"
               )
@@ -145,6 +176,7 @@ export default function MarketsList() {
                 bet: {
                   betId: ${Date.now() % 1000000}
                   marketId: ${numericMarketId}
+                  eventId: "${eventId}"
                   user: "${APP_IDS.USER_ACCOUNT_OWNER}"
                   outcome: ${outcome.toUpperCase()}
                   amount: "${amountParsed}"
@@ -166,15 +198,15 @@ export default function MarketsList() {
         console.log('✓ Bet registered on Market chain');
       }
 
-      // Refresh market data
-      await fetchMarket();
+      // Refresh markets data
+      await fetchMarkets();
     } catch (error) {
       console.error('Failed to place bet:', error);
       throw error;
     }
   };
 
-  if (loading && !market) {
+  if (loading && markets.length === 0) {
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
@@ -190,14 +222,14 @@ export default function MarketsList() {
     return (
       <div className="card error-card">
         <p className="font-semibold">Failed to load markets: {error}</p>
-        <button onClick={fetchMarket} className="btn-secondary mt-4">
+        <button onClick={fetchMarkets} className="btn-secondary mt-4">
           Retry
         </button>
       </div>
     );
   }
 
-  if (!market) {
+  if (markets.length === 0 && !loading) {
     return (
       <div className="card text-center py-8">
         <p className="text-gray-600 mb-4">No markets available yet</p>
@@ -211,13 +243,43 @@ export default function MarketsList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Active Markets</h2>
-        <button onClick={fetchMarket} className="btn-secondary text-sm">
+        <h2 className="text-2xl font-bold text-gray-900">Active Markets ({markets.length})</h2>
+        <button onClick={fetchMarkets} className="btn-secondary text-sm">
           Refresh
         </button>
       </div>
 
-      <MarketCard market={market} onPlaceBet={handlePlaceBet} />
+      {/* Multi-Market Info Banner */}
+      {showMultiMarketInfo && markets.length > 0 && (
+        <div className="card p-4" style={{ background: 'linear-gradient(135deg, hsl(var(--heroui-primary) / 0.1), hsl(var(--heroui-secondary) / 0.1))', border: '1px solid hsl(var(--heroui-primary) / 0.3)' }}>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🎮</span>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1" style={{ color: 'hsl(var(--heroui-primary))' }}>
+                Multi-Market Architecture Active!
+              </h3>
+              <p className="text-sm mb-2" style={{ color: 'hsl(var(--heroui-foreground-600))' }}>
+                {markets.length} market{markets.length !== 1 ? 's' : ''} available! The system supports unlimited markets per chain,
+                each identified by a unique event ID. Oracle Worker auto-generates markets from live games.
+              </p>
+              <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
+                <strong>Status:</strong> ✅ allMarkets query working • Showing latest market ({markets[0]?.info.eventId})
+              </p>
+            </div>
+            <button
+              onClick={() => setShowMultiMarketInfo(false)}
+              className="text-sm px-2 py-1 hover:opacity-70"
+              style={{ color: 'hsl(var(--heroui-foreground-500))' }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {markets.map((market, index) => (
+        <MarketCard key={market.info.eventId || index} market={market} onPlaceBet={handlePlaceBet} />
+      ))}
     </div>
   );
 }
