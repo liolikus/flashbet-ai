@@ -129,29 +129,30 @@
     font-feature-settings: var(--default-font-feature-settings,normal);
     font-variation-settings: var(--default-font-variation-settings,normal);
     -webkit-tap-highlight-color: transparent;
-    --heroui-background: 0 0% 100%;
-    --heroui-foreground-50: 0 0% 98.04%;
-    --heroui-foreground-100: 240 4.76% 95.88%;
-    --heroui-foreground-200: 240 5.88% 90%;
-    --heroui-foreground-300: 240 4.88% 83.92%;
-    --heroui-foreground-400: 240 5.03% 64.9%;
-    --heroui-foreground-500: 240 3.83% 46.08%;
-    --heroui-foreground-600: 240 5.2% 33.92%;
-    --heroui-foreground-700: 240 5.26% 26.08%;
-    --heroui-foreground-800: 240 3.7% 15.88%;
-    --heroui-foreground-900: 240 5.88% 10%;
-    --heroui-foreground: 201.82 24.44% 8.82%;
-    --heroui-divider: 0 0% 6.67%;
-    --heroui-focus: 212.02 100% 46.67%;
+    /* Linera Dark Theme */
+    --heroui-background: 240 10% 5%;
+    --heroui-foreground-50: 240 5.88% 10%;
+    --heroui-foreground-100: 240 3.7% 15.88%;
+    --heroui-foreground-200: 240 5.26% 26.08%;
+    --heroui-foreground-300: 240 5.2% 33.92%;
+    --heroui-foreground-400: 240 3.83% 46.08%;
+    --heroui-foreground-500: 240 5.03% 64.9%;
+    --heroui-foreground-600: 240 4.88% 83.92%;
+    --heroui-foreground-700: 240 5.88% 90%;
+    --heroui-foreground-800: 240 4.76% 95.88%;
+    --heroui-foreground-900: 0 0% 98.04%;
+    --heroui-foreground: 0 0% 95%;
+    --heroui-divider: 240 10% 15%;
+    --heroui-focus: 270 100% 60%;
     --heroui-overlay: 0 0% 0%;
-    --heroui-content1: 0 0% 100%;
-    --heroui-content1-foreground: 201.82 24.44% 8.82%;
-    --heroui-content2: 240 4.76% 95.88%;
-    --heroui-content2-foreground: 240 3.7% 15.88%;
-    --heroui-content3: 240 5.88% 90%;
-    --heroui-content3-foreground: 240 5.26% 26.08%;
-    --heroui-content4: 240 4.88% 83.92%;
-    --heroui-content4-foreground: 240 5.2% 33.92%;
+    --heroui-content1: 240 10% 8%;
+    --heroui-content1-foreground: 0 0% 95%;
+    --heroui-content2: 240 10% 12%;
+    --heroui-content2-foreground: 0 0% 90%;
+    --heroui-content3: 240 10% 16%;
+    --heroui-content3-foreground: 0 0% 85%;
+    --heroui-content4: 240 10% 20%;
+    --heroui-content4-foreground: 240 5.2% 75%;
     --heroui-default-50: 0 0% 98.04%;
     --heroui-default-100: 240 4.76% 95.88%;
     --heroui-default-200: 240 5.88% 90%;
@@ -164,30 +165,31 @@
     --heroui-default-900: 240 5.88% 10%;
     --heroui-default-foreground: 0 0% 0%;
     --heroui-default: 240 4.88% 83.92%;
-    --heroui-primary-50: 212.5 92.31% 94.9%;
-    --heroui-primary-100: 211.84 92.45% 89.61%;
-    --heroui-primary-200: 211.84 92.45% 79.22%;
-    --heroui-primary-300: 212.24 92.45% 68.82%;
-    --heroui-primary-400: 212.14 92.45% 58.43%;
-    --heroui-primary-500: 212.02 100% 46.67%;
-    --heroui-primary-600: 212.14 100% 38.43%;
-    --heroui-primary-700: 212.24 100% 28.82%;
-    --heroui-primary-800: 211.84 100% 19.22%;
-    --heroui-primary-900: 211.84 100% 9.61%;
+    /* Linera Purple-Blue Gradient Colors */
+    --heroui-primary-50: 270 100% 98%;
+    --heroui-primary-100: 270 95% 92%;
+    --heroui-primary-200: 270 90% 85%;
+    --heroui-primary-300: 270 85% 75%;
+    --heroui-primary-400: 270 80% 65%;
+    --heroui-primary-500: 270 75% 55%;
+    --heroui-primary-600: 270 70% 50%;
+    --heroui-primary-700: 270 65% 45%;
+    --heroui-primary-800: 270 60% 35%;
+    --heroui-primary-900: 270 55% 25%;
     --heroui-primary-foreground: 0 0% 100%;
-    --heroui-primary: 212.02 100% 46.67%;
-    --heroui-secondary-50: 270 61.54% 94.9%;
-    --heroui-secondary-100: 270 59.26% 89.41%;
-    --heroui-secondary-200: 270 59.26% 78.82%;
-    --heroui-secondary-300: 270 59.26% 68.24%;
-    --heroui-secondary-400: 270 59.26% 57.65%;
-    --heroui-secondary-500: 270 66.67% 47.06%;
-    --heroui-secondary-600: 270 66.67% 37.65%;
-    --heroui-secondary-700: 270 66.67% 28.24%;
-    --heroui-secondary-800: 270 66.67% 18.82%;
-    --heroui-secondary-900: 270 66.67% 9.41%;
+    --heroui-primary: 270 75% 60%;
+    --heroui-secondary-50: 250 100% 98%;
+    --heroui-secondary-100: 250 95% 92%;
+    --heroui-secondary-200: 250 90% 85%;
+    --heroui-secondary-300: 250 85% 75%;
+    --heroui-secondary-400: 250 80% 65%;
+    --heroui-secondary-500: 250 75% 55%;
+    --heroui-secondary-600: 250 70% 50%;
+    --heroui-secondary-700: 250 65% 45%;
+    --heroui-secondary-800: 250 60% 35%;
+    --heroui-secondary-900: 250 55% 25%;
     --heroui-secondary-foreground: 0 0% 100%;
-    --heroui-secondary: 270 66.67% 47.06%;
+    --heroui-secondary: 250 75% 65%;
     --heroui-success-50: 146.67 64.29% 94.51%;
     --heroui-success-100: 145.71 61.4% 88.82%;
     --heroui-success-200: 146.2 61.74% 77.45%;
@@ -247,7 +249,7 @@
     --font-heading: "Epilogue",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     --font-body: "Hanken Grotesk",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     --font-mono: "Fira Code","Courier New",monospace;
-    color-scheme: light;
+    color-scheme: dark;
     font-weight: 400;
 }
 
@@ -261,130 +263,148 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Button Styles */
+/* Linera Button Styles with Gradients */
 .btn-primary {
-  background: hsl(var(--heroui-primary));
+  background: linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%);
   color: hsl(var(--heroui-primary-foreground));
   font-weight: var(--font-weight-semibold);
   padding: 0.5rem 1rem;
   border-radius: var(--heroui-radius-medium);
   border: none;
   cursor: pointer;
-  transition: opacity var(--default-transition-duration) var(--default-transition-timing-function);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
 }
 
 .btn-primary:hover:not(:disabled) {
-  opacity: var(--heroui-hover-opacity);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+  transform: translateY(-2px);
 }
 
 .btn-primary:disabled {
   opacity: var(--heroui-disabled-opacity);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary {
   background: hsl(var(--heroui-content2));
   color: hsl(var(--heroui-foreground));
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--heroui-font-weight-semibold);
   padding: 0.5rem 1rem;
   border-radius: var(--heroui-radius-medium);
-  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-300));
+  border: 1px solid hsl(var(--heroui-primary) / 0.3);
   cursor: pointer;
-  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
+  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
   background: hsl(var(--heroui-content3));
-  border-color: hsl(var(--heroui-default-400));
+  border-color: hsl(var(--heroui-primary));
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
 }
 
-/* Card Styles */
+/* Linera Card Styles with Glow */
 .card {
   background: hsl(var(--heroui-content1));
-  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-200));
+  border: 1px solid hsl(var(--heroui-primary) / 0.2);
   border-radius: var(--heroui-radius-large);
   padding: 1.5rem;
-  box-shadow: var(--heroui-box-shadow-small);
-  transition: box-shadow var(--default-transition-duration) var(--default-transition-timing-function);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px hsl(var(--heroui-primary) / 0.1);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .card:hover {
-  box-shadow: var(--heroui-box-shadow-medium);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 30px rgba(168, 85, 247, 0.2);
+  border-color: hsl(var(--heroui-primary) / 0.4);
+  transform: translateY(-2px);
 }
 
-/* Input Styles */
+/* Input Styles - Dark Theme with Purple Glow */
 input[type="number"],
 input[type="text"] {
-  background: hsl(var(--heroui-content1));
+  background: hsl(var(--heroui-content2));
   color: hsl(var(--heroui-foreground));
-  border: var(--heroui-border-width-small) solid hsl(var(--heroui-default-300));
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-primary) / 0.3);
   border-radius: var(--heroui-radius-medium);
   padding: 0.5rem 0.75rem;
   font-size: var(--heroui-font-size-medium);
-  transition: border-color var(--default-transition-duration) var(--default-transition-timing-function);
+  transition: all 0.3s ease;
 }
 
 input:focus {
-  outline: 2px solid hsl(var(--heroui-focus));
-  outline-offset: -2px;
+  outline: none;
   border-color: hsl(var(--heroui-primary));
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  background: hsl(var(--heroui-content3));
 }
 
-/* Status Colors */
+input::placeholder {
+  color: hsl(var(--heroui-foreground-400));
+}
+
+/* Status Colors - Dark Theme */
 .status-open {
   color: hsl(var(--heroui-success));
-  background: hsl(var(--heroui-success-100));
+  background: hsl(var(--heroui-success) / 0.15);
   padding: 0.25rem 0.5rem;
   border-radius: var(--heroui-radius-medium);
   font-size: var(--heroui-font-size-small);
   font-weight: var(--font-weight-semibold);
+  border: 1px solid hsl(var(--heroui-success) / 0.3);
 }
 
 .status-locked {
   color: hsl(var(--heroui-warning));
-  background: hsl(var(--heroui-warning-100));
+  background: hsl(var(--heroui-warning) / 0.15);
   padding: 0.25rem 0.5rem;
   border-radius: var(--heroui-radius-medium);
   font-size: var(--heroui-font-size-small);
   font-weight: var(--font-weight-semibold);
+  border: 1px solid hsl(var(--heroui-warning) / 0.3);
 }
 
 .status-resolved {
   color: hsl(var(--heroui-primary));
-  background: hsl(var(--heroui-primary-100));
+  background: hsl(var(--heroui-primary) / 0.15);
   padding: 0.25rem 0.5rem;
   border-radius: var(--heroui-radius-medium);
   font-size: var(--heroui-font-size-small);
   font-weight: var(--font-weight-semibold);
+  border: 1px solid hsl(var(--heroui-primary) / 0.3);
 }
 
 .status-cancelled {
   color: hsl(var(--heroui-danger));
-  background: hsl(var(--heroui-danger-100));
+  background: hsl(var(--heroui-danger) / 0.15);
   padding: 0.25rem 0.5rem;
   border-radius: var(--heroui-radius-medium);
   font-size: var(--heroui-font-size-small);
   font-weight: var(--font-weight-semibold);
+  border: 1px solid hsl(var(--heroui-danger) / 0.3);
 }
 
-/* Outcome Button Styles */
+/* Outcome Button Styles - Dark Theme with Glow */
 .outcome-button {
   background: hsl(var(--heroui-content1));
-  border: var(--heroui-border-width-medium) solid hsl(var(--heroui-default-200));
+  border: var(--heroui-border-width-medium) solid hsl(var(--heroui-default-300) / 0.3);
   border-radius: var(--heroui-radius-medium);
   padding: 0.75rem;
   cursor: pointer;
-  transition: all var(--default-transition-duration) var(--default-transition-timing-function);
+  transition: all 0.3s ease;
 }
 
 .outcome-button:hover:not(:disabled) {
   border-color: hsl(var(--heroui-primary));
   background: hsl(var(--heroui-content2));
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
 }
 
 .outcome-button.selected {
   border-color: hsl(var(--heroui-primary));
-  background: hsl(var(--heroui-primary-100));
+  background: linear-gradient(135deg, hsl(var(--heroui-primary) / 0.15) 0%, hsl(var(--heroui-secondary) / 0.15) 100%);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
 }
 
 .outcome-button:disabled {
@@ -392,19 +412,21 @@ input:focus {
   cursor: not-allowed;
 }
 
-/* Balance Display */
+/* Balance Display - Dark Theme with Gradient */
 .balance-display {
-  background: hsl(var(--heroui-primary-100));
-  color: hsl(var(--heroui-primary));
+  background: linear-gradient(135deg, hsl(var(--heroui-primary) / 0.2) 0%, hsl(var(--heroui-secondary) / 0.2) 100%);
+  border: 1px solid hsl(var(--heroui-primary) / 0.4);
+  color: hsl(var(--heroui-foreground));
   border-radius: var(--heroui-radius-medium);
   padding: 1rem;
   text-align: center;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
 }
 
-/* Error State */
+/* Error State - Dark Theme */
 .error-card {
-  background: hsl(var(--heroui-danger-50));
-  border: var(--heroui-border-width-small) solid hsl(var(--heroui-danger));
+  background: hsl(var(--heroui-danger) / 0.1);
+  border: var(--heroui-border-width-small) solid hsl(var(--heroui-danger) / 0.4);
   color: hsl(var(--heroui-danger));
 }
 
@@ -422,4 +444,100 @@ input:focus {
   100% {
     background-position: -200% 0;
   }
+}
+
+/* Headings with Linera Style */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: hsl(var(--heroui-foreground));
+  font-weight: var(--font-weight-bold);
+}
+
+h1 {
+  font-size: var(--text-4xl);
+  line-height: var(--text-4xl--line-height);
+  background: linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  line-height: var(--text-2xl--line-height);
+}
+
+/* Links */
+a {
+  color: hsl(var(--heroui-primary));
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: hsl(var(--heroui-secondary));
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+/* Scrollbar Styling - Linera Dark Theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--heroui-content1));
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, hsl(var(--heroui-primary-600)) 0%, hsl(var(--heroui-secondary-600)) 100%);
+}
+
+/* Selection */
+::selection {
+  background: hsl(var(--heroui-primary) / 0.3);
+  color: hsl(var(--heroui-foreground));
+}
+
+/* Focus Visible */
+*:focus-visible {
+  outline: 2px solid hsl(var(--heroui-primary));
+  outline-offset: 2px;
+}
+
+/* Utility Classes for Gradients */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
