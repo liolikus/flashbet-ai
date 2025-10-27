@@ -53,11 +53,11 @@ gantt
 | Wave | Period | Focus | Status |
 |------|--------|-------|--------|
 | **Wave 1** | Oct 20-29 | MVP Foundation | ✅ Complete |
-| **Wave 2** | Nov 3-12 | Security & Wallets | 🔄 Next |
-| **Wave 3** | Nov 17-26 | Market Expansion | 📋 Planned |
-| **Wave 4** | Dec 1-10 | Order Book System | 📋 Planned |
-| **Wave 5** | Dec 15-Jan 7 | Security & Expansion | 📋 Planned |
-| **Wave 6** | Jan 12-21 | Optimization & Social | 📋 Planned |
+| **Wave 2** | Nov 3-12 | Security & Wallets |  Next |
+| **Wave 3** | Nov 17-26 | Market Expansion |  Planned |
+| **Wave 4** | Dec 1-10 | Order Book System |  Planned |
+| **Wave 5** | Dec 15-Jan 7 | Security & Expansion |  Planned |
+| **Wave 6** | Jan 12-21 | Optimization & Social |  Planned |
 
 #### Wave Details
 
@@ -71,23 +71,38 @@ gantt
 - MetaMask integration with EIP-712 signatures
 - Complete test suite (>90% coverage)
 
-**Wave 3: Market Expansion** 📋
+**Wave 3: Market Expansion** 
 - Expand to 15+ sports (NHL, UFC, Golf, Cricket, Esports)
 - Live in-game betting with real-time odds
 - Multiple oracle sources (The Odds API, ESPN, Chainlink)
 
-**Wave 4: Order Book System** 📋
+**Wave 4: Order Book System** 
 - CLOB (Central Limit Order Book) Polymarket style
 - Limit orders, market orders, stop-loss
 - Hybrid parimutuel + order book model
 
-**Wave 5: Security & Expansion** 📋
+**Wave 5: Security & Expansion** 
 - CLOB smart-contract audit
 - Adding politics, finance, crypto events
 
-**Wave 6: Optimization & Social** 📋
+**Wave 6: Optimization & Social** 
 - Advanced analytics dashboard (P&L, win rates, ROI)
 - Social features (leaderboards, profiles, following)
+
+**Post-Hackathon Goals (2026)**
+- Advanced risk management tools
+- Multi-language support (10+ languages)
+- Regulatory compliance framework (KYC/AML)
+- Enhanced security: Multi-sig wallets, cold storage
+- Prediction markets beyond completed (geopolitics, weather, economics)
+- Conditional markets (e.g., "Team A wins IF Player X plays")
+- AI-powered odds recommendations
+- Risk assessment tools for users
+- Fraud detection and prevention
+- Predictive analytics for market trends
+- Transition to fully decentralized governance
+- Community-run oracle network
+- Decentralized moderation and dispute resolution
 
 
 
