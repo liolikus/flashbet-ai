@@ -77,17 +77,24 @@ export default function Navigation() {
                         ? '1px solid hsl(var(--heroui-primary) / 0.3)'
                         : '1px solid transparent',
                       opacity: isInactive ? 0.5 : 1,
-                      cursor: isInactive ? 'not-allowed' : 'pointer',
-                      pointerEvents: isInactive ? 'none' : 'auto'
+                      cursor: isInactive ? 'not-allowed' : 'pointer'
                     }}
                     onMouseEnter={(e) => {
-                      if (item.active && location.pathname !== item.path) {
+                      if (isInactive) {
+                        e.currentTarget.style.background = 'hsl(var(--heroui-content2) / 0.5)';
+                        e.currentTarget.style.opacity = '0.7';
+                        e.currentTarget.style.borderColor = 'hsl(var(--heroui-default-300) / 0.5)';
+                      } else if (item.active && location.pathname !== item.path) {
                         e.currentTarget.style.background = 'hsl(var(--heroui-content2))';
                         e.currentTarget.style.color = 'hsl(var(--heroui-foreground))';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (item.active && location.pathname !== item.path) {
+                      if (isInactive) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.opacity = '0.5';
+                        e.currentTarget.style.borderColor = 'hsl(var(--heroui-default-300) / 0.3)';
+                      } else if (item.active && location.pathname !== item.path) {
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.color = 'hsl(var(--heroui-foreground-500))';
                       }
