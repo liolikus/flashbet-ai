@@ -59,6 +59,37 @@ gantt
 | **Wave 5** | Dec 15-Jan 7 | Security & Expansion | 📋 Planned |
 | **Wave 6** | Jan 12-21 | Optimization & Social | 📋 Planned |
 
+#### Wave Details
+
+**Wave 1: MVP Foundation** ✅
+- 3 Linera microchains deployed (User, Market, Oracle)
+- Multi-market architecture with 10 demo markets
+- Production deployment with HTTPS
+
+**Wave 2: Security & Wallets** 🔄
+- Smart contract security audit and fixes
+- MetaMask integration with EIP-712 signatures
+- Complete test suite (>90% coverage)
+
+**Wave 3: Market Expansion** 📋
+- Expand to 15+ sports (NHL, UFC, Golf, Cricket, Esports)
+- Live in-game betting with real-time odds
+- Multiple oracle sources (The Odds API, ESPN, Chainlink)
+
+**Wave 4: Order Book System** 📋
+- CLOB (Central Limit Order Book) Polymarket style
+- Limit orders, market orders, stop-loss
+- Hybrid parimutuel + order book model
+
+**Wave 5: Security & Expansion** 📋
+- CLOB smart-contract audit
+- Adding politics, finance, crypto events
+
+**Wave 6: Optimization & Social** 📋
+- Advanced analytics dashboard (P&L, win rates, ROI)
+- Social features (leaderboards, profiles, following)
+
+
 
 ---
 
