@@ -538,15 +538,6 @@ export default function MarketsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Markets ({filteredMarkets.length})
-        </h2>
-        <button onClick={fetchMarkets} className="btn-secondary text-sm">
-          Refresh
-        </button>
-      </div>
-
       {/* Filter Buttons */}
       <div className="flex gap-2">
         <button
@@ -593,6 +584,9 @@ export default function MarketsList() {
           }}
         >
           Ended ({endedCount})
+        </button>
+        <button onClick={fetchMarkets} className="btn-secondary text-sm ml-auto">
+          Refresh
         </button>
       </div>
 
