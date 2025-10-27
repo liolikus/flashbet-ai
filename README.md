@@ -3,7 +3,7 @@
 ---
 
 ##  Live Demo
-https://github.com/user-attachments/assets/fb8b44d6-0d64-4814-bbde-4d896241a675
+https://github.com/user-attachments/assets/31ceb206-5e8a-45e1-b0ab-649606a167be
 
 **Frontend**: https://flashbet-ai.vercel.app
 **Backend API**: https://warning-apparel-journal-pst.trycloudflare.com
