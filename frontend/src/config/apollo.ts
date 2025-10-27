@@ -2,7 +2,12 @@ import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
 // Linera uses chain and application-specific endpoints
 // Format: http://localhost:8080/chains/{CHAIN_ID}/applications/{APP_ID}
-const BASE_URL = 'http://localhost:8080';
+//
+// Environment Variables:
+// - VITE_LINERA_GRAPHQL_URL: Your Linera GraphQL service endpoint
+//   Development: http://localhost:8080
+//   Production: http://YOUR_VPS_IP:8080 or https://your-domain.com
+export const BASE_URL = import.meta.env.VITE_LINERA_GRAPHQL_URL || 'http://localhost:8080';
 
 // HTTP link - will be overridden per query in components
 const httpLink = new HttpLink({

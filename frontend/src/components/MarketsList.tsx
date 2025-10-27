@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import MarketCard from './MarketCard';
 import type { MarketState, Outcome } from '../types';
 import { parseAmount } from '../utils/helpers';
-import { APP_IDS } from '../config/apollo';
-
-const BASE_URL = 'http://localhost:8080';
+import { APP_IDS, BASE_URL } from '../config/apollo';
 
 type MarketFilter = 'all' | 'active' | 'ended';
 

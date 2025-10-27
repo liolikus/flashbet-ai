@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { formatAmount, parseAmount } from '../utils/helpers';
-import { APP_IDS } from '../config/apollo';
-
-const BASE_URL = 'http://localhost:8080';
+import { APP_IDS, BASE_URL } from '../config/apollo';
 
 export default function UserBalance() {
   const [balance, setBalance] = useState('0');
