@@ -551,31 +551,46 @@ export default function MarketsList() {
       <div className="flex gap-2">
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`btn-secondary text-sm ${
+            filter === 'all' ? 'opacity-100' : 'opacity-70'
           }`}
+          style={{
+            background: filter === 'all'
+              ? 'linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%)'
+              : undefined,
+            color: filter === 'all' ? '#ffffff' : undefined,
+            fontWeight: filter === 'all' ? '600' : undefined
+          }}
         >
           All ({markets.length})
         </button>
         <button
           onClick={() => setFilter('active')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'active'
-              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`btn-secondary text-sm ${
+            filter === 'active' ? 'opacity-100' : 'opacity-70'
           }`}
+          style={{
+            background: filter === 'active'
+              ? 'linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%)'
+              : undefined,
+            color: filter === 'active' ? '#ffffff' : undefined,
+            fontWeight: filter === 'active' ? '600' : undefined
+          }}
         >
           Active ({activeCount})
         </button>
         <button
           onClick={() => setFilter('ended')}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            filter === 'ended'
-              ? 'bg-gradient-to-r from-[hsl(var(--heroui-primary))] to-[hsl(var(--heroui-secondary))] text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`btn-secondary text-sm ${
+            filter === 'ended' ? 'opacity-100' : 'opacity-70'
           }`}
+          style={{
+            background: filter === 'ended'
+              ? 'linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%)'
+              : undefined,
+            color: filter === 'ended' ? '#ffffff' : undefined,
+            fontWeight: filter === 'ended' ? '600' : undefined
+          }}
         >
           Ended ({endedCount})
         </button>
