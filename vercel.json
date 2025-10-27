@@ -7,8 +7,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_LINERA_GRAPHQL_URL": "@linera_graphql_url"
-  }
+  ]
 }
