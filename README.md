@@ -4,12 +4,60 @@
 
 ## 🎯 Live Demo
 
-**Frontend**: https://flashbet-ai.vercel.app | 
+**Frontend**: https://flashbet-ai.vercel.app
 **Backend API**: https://warning-apparel-journal-pst.trycloudflare.com
 
 **Production Status**: ✅ Live on Conway Testnet with 10 demo markets
-**Check Status**: `./scripts/check_status.sh` |
-**Run Demo script**: `./scripts/demo_full_cycle.sh` |
+
+**Quick Commands**:
+- Check Status: `./scripts/check_status.sh`
+- Run Demo: `./scripts/demo_full_cycle.sh`
+
+---
+
+## 🗓️ Development Roadmap
+
+```mermaid
+gantt
+    title FlashBet AI - Linera Buildathon 2025 Roadmap
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+
+    section Wave 1 ✅
+    MVP Foundation           :done, w1, 2025-10-20, 10d
+
+    section Wave 2
+    Security & Wallets       :active, w2, 2025-11-03, 10d
+
+    section Wave 3
+    Market Expansion         :w3, 2025-11-17, 10d
+
+    section Wave 4
+    Order Book System        :w4, 2025-12-01, 10d
+
+    section Wave 5
+    Security & Expansion     :w5, 2025-12-15, 24d
+
+    section Wave 6
+    Optimization & Social    :w6, 2026-01-12, 10d
+
+    section Post-Hackathon
+    Enterprise Features      :p1, 2026-02-01, 90d
+    Global Expansion         :p2, 2026-05-01, 90d
+    Ecosystem Growth         :p3, 2026-08-01, 120d
+    Full Decentralization    :p4, 2027-01-01, 180d
+```
+
+### Hackathon Waves (Oct 2025 - Jan 2026)
+
+| Wave | Period | Focus | Status |
+|------|--------|-------|--------|
+| **Wave 1** | Oct 20-29 | MVP Foundation | ✅ Complete |
+| **Wave 2** | Nov 3-12 | Security & Wallets | 🔄 Next |
+| **Wave 3** | Nov 17-26 | Market Expansion | 📋 Planned |
+| **Wave 4** | Dec 1-10 | Order Book System | 📋 Planned |
+| **Wave 5** | Dec 15-Jan 7 | Security & Expansion | 📋 Planned |
+| **Wave 6** | Jan 12-21 | Optimization & Social | 📋 Planned |
 
 
 ---
