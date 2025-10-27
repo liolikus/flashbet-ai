@@ -2,7 +2,7 @@
 
 ---
 
-## 🎯 Live Demo
+##  Live Demo
 
 **Frontend**: https://flashbet-ai.vercel.app
 **Backend API**: https://warning-apparel-journal-pst.trycloudflare.com
