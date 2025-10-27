@@ -13,7 +13,7 @@ export default function MarketsList() {
   const [loading, setLoading] = useState(true); // Start with true for initial load
   const [initialLoad, setInitialLoad] = useState(true); // Track if this is the first load
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<MarketFilter>('all');
+  const [filter, setFilter] = useState<MarketFilter>('active'); // Default to active markets
 
   const fetchMarkets = async () => {
     // Only show loading spinner on initial load, not on background refreshes
@@ -61,11 +61,9 @@ export default function MarketsList() {
 
         // Fetch each market individually by eventId using parameterized queries
         const marketStates: MarketState[] = [];
-        console.log(`🔄 Querying ${marketIds.length} markets from blockchain...`);
 
         for (const eventId of marketIds) {
           try {
-            console.log(`  📊 Fetching market: ${eventId}`);
             const response = await fetch(
               `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
               {
@@ -147,7 +145,6 @@ export default function MarketsList() {
 
           return hasChanged ? marketStates : prevMarkets;
         });
-        console.log(`✅ Blockchain data loaded: ${marketStates.length} markets`);
       } else if (allMarketsData.errors) {
         setError(allMarketsData.errors[0]?.message || 'Failed to load markets list');
       }
@@ -378,15 +375,112 @@ export default function MarketsList() {
       console.log('✅ Status:');
       console.log(`  ✓ Market Status: Resolved`);
       console.log(`  ✓ Betting: Closed`);
-      console.log(`  ✓ Cross-chain payouts: Automatically distributed to User chains`);
-      console.log('  🔄 Refreshing market data from blockchain...');
+      console.log('');
+      console.log('💸 Distributing Payouts...');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Step 2: Distribute payouts to winners
+      await distributePayout(eventId, randomOutcome);
 
       // Refresh markets data
       await fetchMarkets();
     } catch (error) {
       console.error('❌ Failed to resolve market:', error);
       throw error;
+    }
+  };
+
+  const distributePayout = async (eventId: string, winningOutcome: string) => {
+    try {
+      // Query Market contract for all bets on this market
+      const allBetsResponse = await fetch(
+        `${BASE_URL}/chains/${APP_IDS.MARKET_CHAIN}/applications/${APP_IDS.MARKET}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: `{ allBets(eventId: "${eventId}") { betId marketId outcome amount userChain } }`,
+          }),
+        }
+      );
+
+      const allBetsData = await allBetsResponse.json();
+
+      if (allBetsData.errors) {
+        console.error('⚠️ Could not fetch bets for payout distribution:', allBetsData.errors);
+        return;
+      }
+
+      const allBets = allBetsData.data?.allBets || [];
+
+      // Filter winning bets
+      const winningBets = allBets.filter((bet: any) => bet.outcome === winningOutcome);
+
+      if (winningBets.length === 0) {
+        console.log('  ℹ️ No winning bets to distribute');
+        return;
+      }
+
+      console.log(`  📋 Found ${winningBets.length} winning bet(s) to process`);
+
+      // Get market totals for payout calculation
+      const market = markets.find(m => m.info.eventId === eventId);
+      if (!market) {
+        console.error('  ❌ Market not found for payout calculation');
+        return;
+      }
+
+      const totalPool = parseFloat(market.totalPool);
+      const winningPool = winningOutcome === 'HOME'
+        ? parseFloat(market.pools.Home)
+        : winningOutcome === 'AWAY'
+        ? parseFloat(market.pools.Away)
+        : parseFloat(market.pools.Draw);
+
+      const payoutMultiplier = winningPool > 0 ? totalPool / winningPool : 0;
+
+      // Distribute payout to each winner
+      for (let i = 0; i < winningBets.length; i++) {
+        const bet = winningBets[i];
+        const betAmount = parseFloat(bet.amount);
+        const payoutAmount = Math.floor(betAmount * payoutMultiplier);
+
+        console.log(`  💰 Payout ${i + 1}/${winningBets.length}: ${(payoutAmount / 1e18).toFixed(2)} tokens`);
+
+        // Call User contract's receivePayout mutation
+        const payoutResponse = await fetch(
+          `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `mutation {
+                receivePayout(payout: {
+                  marketId: ${bet.marketId}
+                  betId: ${bet.betId}
+                  amount: "${payoutAmount}"
+                  timestamp: ${Date.now() * 1000}
+                })
+              }`,
+            }),
+          }
+        );
+
+        const payoutData = await payoutResponse.json();
+
+        if (payoutData.errors) {
+          console.error(`  ❌ Payout ${i + 1} failed:`, payoutData.errors[0]?.message);
+        } else {
+          console.log(`  ✅ Payout ${i + 1} credited to balance`);
+        }
+      }
+
+      console.log('');
+      console.log('🎊 All payouts distributed successfully!');
+      console.log('  🔄 Balance updated - check your wallet');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    } catch (error) {
+      console.error('❌ Payout distribution error:', error);
     }
   };
 
@@ -426,7 +520,10 @@ export default function MarketsList() {
 
   // Filter markets based on status
   const isMarketEnded = (market: MarketState) => {
-    return market.status.includes('Resolved') || market.status === 'Locked';
+    // Market is ended if it's Resolved (any outcome), Locked, or Cancelled
+    return market.status.includes('Resolved') ||
+           market.status === 'Locked' ||
+           market.status === 'Cancelled';
   };
 
   const filteredMarkets = markets.filter(market => {

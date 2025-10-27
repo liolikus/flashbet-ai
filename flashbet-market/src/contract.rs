@@ -304,16 +304,16 @@ impl FlashbetMarketContract {
             let payout_amount = self.state.calculate_payout(&bet, &result.outcome).await;
 
             if payout_amount > linera_sdk::linera_base_types::Amount::ZERO {
-                let _payout = Payout {
+                let payout = Payout {
                     market_id: bet.market_id,
                     bet_id: bet.bet_id,
                     amount: payout_amount,
                     timestamp: self.runtime.system_time(),
                 };
 
-                // Send payout message to the user's chain
-                // Note: Cross-application messaging in Linera
-                // For now, we'll emit an event and handle payouts in User Chain via event subscription
+                // Wave 1: Emit payout event for frontend to process
+                // Wave 2+: Will send direct message to User chain via cross-app messaging
+                // For now, frontend will query payout events and call User.receivePayout
                 self.runtime.emit(
                     StreamName::from(b"payout_events".to_vec()),
                     &MarketEvent::PayoutDistributed {
