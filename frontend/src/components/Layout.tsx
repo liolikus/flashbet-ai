@@ -7,7 +7,25 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div style={{ minHeight: '100vh', background: 'hsl(var(--heroui-background))' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(-45deg, #000000, #1a0000, #330000, #4d0000, #000000)',
+      backgroundSize: '400% 400%',
+      animation: 'gradientShift 15s ease infinite'
+    }}>
+      <style>{`
+        @keyframes gradientShift {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+      `}</style>
       {/* Navigation */}
       <Navigation />
 

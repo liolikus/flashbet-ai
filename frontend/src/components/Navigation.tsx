@@ -22,15 +22,34 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <div className="text-2xl font-bold" style={{
-              fontFamily: 'var(--font-heading)',
-              background: 'linear-gradient(135deg, hsl(var(--heroui-primary)) 0%, hsl(var(--heroui-secondary)) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              FlashBet AI
-            </div>
+            <img
+              src="/flashbet_logo.png"
+              alt="FlashBet AI"
+              style={{
+                height: '40px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                animation: 'logoFloat 3s ease-in-out infinite'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+                e.currentTarget.style.filter = 'drop-shadow(0 0 15px rgba(239, 68, 68, 0.8))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                e.currentTarget.style.filter = 'none';
+              }}
+            />
+            <style>{`
+              @keyframes logoFloat {
+                0%, 100% {
+                  transform: translateY(0px);
+                }
+                50% {
+                  transform: translateY(-5px);
+                }
+              }
+            `}</style>
             <div className="flex space-x-4">
               {navItems.map((item) => {
                 const isActive = item.active && location.pathname === item.path;
@@ -79,6 +98,23 @@ export default function Navigation() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Right side - Made with love on Linera */}
+          <div className="flex items-center" style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.875rem',
+            color: 'hsl(var(--heroui-foreground-500))',
+            gap: '0.25rem'
+          }}>
+            <span>Made with love</span>
+            <span style={{ color: '#ef4444' }}>❤️</span>
+            <span>on</span>
+            <img
+              src="/linera_logo_full_red.png"
+              alt="Linera Protocol"
+              style={{ height: '24px' }}
+            />
           </div>
         </div>
       </div>
