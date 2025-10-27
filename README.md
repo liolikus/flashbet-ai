@@ -4,7 +4,13 @@
 
 ## 🎯 Live Demo
 
-[Frontend - Coming Soon] | [GraphQL API - Coming Soon]
+**Frontend**: https://flashbet-ai.vercel.app | 
+**Backend API**: https://warning-apparel-journal-pst.trycloudflare.com
+
+**Production Status**: ✅ Live on Conway Testnet with 10 demo markets
+**Check Status**: `./scripts/check_status.sh` |
+**Run Demo script**: `./scripts/demo_full_cycle.sh` |
+
 
 ---
 
@@ -188,3 +194,19 @@ User App:   8fd6c26d5068f53015fcf90f3770e325d55b98e27ddadb9054d60372f6421156
 cd frontend && npm install && npm run dev
 # Open http://localhost:5173
 ```
+
+### Option 3: Full Demo Script (2-3 minutes)
+
+Complete betting cycle demonstration with 10 live markets:
+
+```bash
+# Ensure service is running
+./scripts/start_service.sh
+
+# Run full demo (deposit → bet → oracle → payout)
+./scripts/demo_full_cycle.sh
+```
+
+**Demo shows**: Balance check → Deposit 500 tokens → Browse 10 markets → Place bet on Yankees → View odds → Oracle publishes result (Yankees WIN) → Auto-resolve → Receive payout → Final summary
+
+**See**: [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for detailed documentation
