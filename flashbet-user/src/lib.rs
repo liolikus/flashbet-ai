@@ -6,15 +6,18 @@ use async_graphql::{Request, Response, SimpleObject};
 use flashbet_shared::{EventId, MarketId, Outcome, Payout, UserEvent};
 use linera_sdk::{
     graphql::GraphQLMutationRoot,
-    linera_base_types::{Amount, ChainId, ContractAbi, ServiceAbi},
+    linera_base_types::{AccountOwner, Amount, ChainId, ContractAbi, ServiceAbi},
 };
 use serde::{Deserialize, Serialize};
+
+/// FlashBet native token ticker symbol
+pub const TICKER_SYMBOL: &str = "BET";
 
 pub struct FlashbetUserAbi;
 
 impl ContractAbi for FlashbetUserAbi {
     type Operation = Operation;
-    type Response = ();
+    type Response = OperationResponse;
 }
 
 impl ServiceAbi for FlashbetUserAbi {
@@ -22,10 +25,33 @@ impl ServiceAbi for FlashbetUserAbi {
     type QueryResponse = Response;
 }
 
+/// Response types for User operations
+#[derive(Debug, Serialize, Deserialize)]
+pub enum OperationResponse {
+    /// Balance query response (returns Amount)
+    Balance(Amount),
+    /// Ticker symbol query response (returns String)
+    TickerSymbol(String),
+    /// Generic success response
+    Ok,
+}
+
 /// Operations that users can perform on their User Chain
 #[derive(Debug, Deserialize, Serialize, GraphQLMutationRoot)]
 pub enum Operation {
+    /// Query native token balance for an account owner
+    /// Follows native-fungible example pattern
+    Balance {
+        /// Account owner to query balance for
+        owner: AccountOwner,
+    },
+
+    /// Query the ticker symbol for FlashBet native tokens
+    /// Returns "BET"
+    TickerSymbol,
+
     /// Place a bet on a market
+    /// This operation transfers native tokens from user to Market chain
     PlaceBet {
         /// The Market Chain to send the bet to
         market_chain: ChainId,
@@ -35,22 +61,8 @@ pub enum Operation {
         event_id: EventId,
         /// Chosen outcome (Home/Away/Draw)
         outcome: Outcome,
-        /// Bet amount
+        /// Bet amount (in native tokens)
         amount: Amount,
-    },
-
-    /// Deposit funds to the user's balance
-    Deposit {
-        /// Amount to deposit
-        amount: Amount,
-    },
-
-    /// Receive a payout from a resolved market
-    /// Wave 1: Called by frontend after market resolves
-    /// Wave 2+: Will be triggered automatically via Market messages
-    ReceivePayout {
-        /// The payout information
-        payout: Payout,
     },
 }
 
@@ -66,5 +78,5 @@ pub enum Message {
 }
 
 /// Instantiation argument for User Chain
-/// Wave 1: No init params - users start with zero and use Deposit
+/// Users receive native tokens via Linera's native token system
 pub type InstantiationArgument = ();

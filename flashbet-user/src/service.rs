@@ -41,7 +41,12 @@ impl Service for FlashbetUserService {
     }
 
     async fn handle_query(&self, query: Self::Query) -> Self::QueryResponse {
-        let balance = self.state.get_balance();
+        // Query native token balance (following native-fungible pattern)
+        let chain_id = self.runtime.chain_id();
+
+        // Get chain's native token balance using runtime API
+        // This follows the native-fungible example pattern
+        let balance = self.runtime.owner_balance(linera_sdk::linera_base_types::AccountOwner::CHAIN);
 
         let mut active_bets = Vec::new();
         self.state
@@ -75,6 +80,7 @@ impl Service for FlashbetUserService {
 
         Schema::build(
             QueryRoot {
+                chain_id,
                 balance,
                 active_bets,
                 bet_history,
@@ -90,6 +96,7 @@ impl Service for FlashbetUserService {
 }
 
 struct QueryRoot {
+    chain_id: linera_sdk::linera_base_types::ChainId,
     balance: Amount,
     active_bets: Vec<Bet>,
     bet_history: Vec<Bet>,
@@ -98,9 +105,19 @@ struct QueryRoot {
 
 #[Object]
 impl QueryRoot {
-    /// Get the user's current balance
+    /// Get the chain ID
+    async fn chain_id(&self) -> linera_sdk::linera_base_types::ChainId {
+        self.chain_id
+    }
+
+    /// Get the user's current native token balance
     async fn balance(&self) -> Amount {
         self.balance
+    }
+
+    /// Get the ticker symbol for FlashBet native tokens
+    async fn ticker_symbol(&self) -> String {
+        flashbet_user::TICKER_SYMBOL.to_string()
     }
 
     /// Get all active bets (not yet resolved)

@@ -230,6 +230,11 @@ impl Contract for FlashbetMarketContract {
                 // Handle oracle result (Wave 1: direct message approach)
                 self.handle_oracle_result(result).await;
             }
+
+            Message::Payout(_) => {
+                // Payout messages are sent FROM Market TO Users, never received by Market
+                // If we receive one back (e.g., bounced), just ignore it
+            }
         }
     }
 
@@ -299,7 +304,9 @@ impl FlashbetMarketContract {
             },
         );
 
-        // Distribute payouts to winners
+        // Distribute payouts to winners using native token transfers
+        use linera_sdk::linera_base_types::Account;
+
         for bet in winning_bets {
             let payout_amount = self.state.calculate_payout(&bet, &result.outcome).await;
 
@@ -311,9 +318,23 @@ impl FlashbetMarketContract {
                     timestamp: self.runtime.system_time(),
                 };
 
-                // Wave 1: Emit payout event for frontend to process
-                // Wave 2+: Will send direct message to User chain via cross-app messaging
-                // For now, frontend will query payout events and call User.receivePayout
+                // Transfer native tokens from Market chain balance to winner's account
+                use linera_sdk::linera_base_types::AccountOwner;
+                let winner_account = Account {
+                    chain_id: bet.user_chain,
+                    owner: bet.user,
+                };
+
+                // Transfer from Market chain balance to user
+                self.runtime.transfer(AccountOwner::CHAIN, winner_account, payout_amount);
+
+                // Send Payout message to update User chain state tracking
+                self.runtime
+                    .prepare_message(flashbet_market::Message::Payout(payout.clone()))
+                    .with_authentication() // Forward Market chain identity
+                    .send_to(bet.user_chain);
+
+                // Emit event for logging
                 self.runtime.emit(
                     StreamName::from(b"payout_events".to_vec()),
                     &MarketEvent::PayoutDistributed {

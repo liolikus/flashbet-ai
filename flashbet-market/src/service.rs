@@ -56,11 +56,18 @@ impl Service for FlashbetMarketService {
         // Get latest market event ID for default queries
         let latest_event_id = self.get_latest_market_event_id().await;
 
+        // Get Market chain's native token balance (escrow holding)
+        // This follows the native-fungible example pattern
+        let escrow_balance = self.runtime.owner_balance(
+            linera_sdk::linera_base_types::AccountOwner::CHAIN
+        );
+
         Schema::build(
             QueryRoot {
                 all_market_ids,
                 markets_data,
                 latest_event_id,
+                escrow_balance,
             },
             Operation::mutation_root(self.runtime.clone()),
             EmptySubscription,
@@ -147,6 +154,7 @@ struct QueryRoot {
     all_market_ids: Vec<String>,
     markets_data: std::collections::HashMap<String, (MarketData, Vec<Bet>)>,
     latest_event_id: Option<EventId>,
+    escrow_balance: Amount,
 }
 
 #[Object]
@@ -337,6 +345,11 @@ impl QueryRoot {
     /// Get list of all market event IDs
     async fn all_markets(&self) -> Vec<String> {
         self.all_market_ids.clone()
+    }
+
+    /// Get Market chain's native token balance (total escrow balance)
+    async fn escrow_balance(&self) -> Amount {
+        self.escrow_balance
     }
 }
 

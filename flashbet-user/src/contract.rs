@@ -3,7 +3,7 @@
 mod state;
 
 use flashbet_shared::{Bet, UserEvent};
-use flashbet_user::{InstantiationArgument, Message, Operation};
+use flashbet_user::{InstantiationArgument, Message, Operation, OperationResponse};
 use linera_sdk::{
     linera_base_types::{Amount, StreamName, WithContractAbi},
     views::{RootView, View},
@@ -40,15 +40,26 @@ impl Contract for FlashbetUserContract {
         // Validate application parameters
         self.runtime.application_parameters();
 
-        // Set initial balance to zero (users deposit funds via Deposit operation)
-        self.state.balance.set(Amount::ZERO);
-
         // Initialize bet ID counter
+        // Note: Balances are now managed by Linera's native token system
         self.state.next_bet_id.set(0);
     }
 
     async fn execute_operation(&mut self, operation: Self::Operation) -> Self::Response {
         match operation {
+            Operation::Balance { owner } => {
+                // Query native token balance using runtime API
+                // Follows native-fungible example pattern
+                let balance = self.runtime.owner_balance(owner);
+                OperationResponse::Balance(balance)
+            }
+
+            Operation::TickerSymbol => {
+                // Return FlashBet native token ticker symbol
+                // Follows native-fungible example pattern
+                OperationResponse::TickerSymbol(flashbet_user::TICKER_SYMBOL.to_string())
+            }
+
             Operation::PlaceBet {
                 market_chain,
                 market_id,
@@ -57,26 +68,20 @@ impl Contract for FlashbetUserContract {
                 amount,
             } => {
                 // 1. Validate amount
-                assert!(amount > linera_sdk::linera_base_types::Amount::ZERO, "Bet amount must be positive");
+                assert!(amount > Amount::ZERO, "Bet amount must be positive");
 
-                // 2. Check sufficient funds
-                assert!(
-                    self.state.has_sufficient_funds(amount),
-                    "Insufficient funds: balance={}, required={}",
-                    self.state.get_balance(),
-                    amount
-                );
-
-                // 3. Get authenticated signer
+                // 2. Get authenticated signer
                 let signer = self
                     .runtime
                     .authenticated_signer()
                     .expect("PlaceBet operation must be signed");
 
-                // 4. Debit balance
-                self.state.debit(amount);
+                // 3. Check user has permission to spend
+                self.runtime
+                    .check_account_permission(signer)
+                    .expect("User not authorized");
 
-                // 5. Create bet record
+                // 4. Create bet record
                 let bet_id = self.state.get_next_bet_id();
                 let user_chain = self.runtime.chain_id();
 
@@ -91,6 +96,17 @@ impl Contract for FlashbetUserContract {
                     user_chain,
                 };
 
+                // 5. Transfer native tokens to Market chain
+                // This will fail if user has insufficient balance (checked by runtime)
+                use linera_sdk::linera_base_types::{Account, AccountOwner};
+                let market_account = Account {
+                    chain_id: market_chain,
+                    owner: AccountOwner::CHAIN, // Transfer to Market chain balance
+                };
+
+                self.runtime
+                    .transfer(signer, market_account, amount);
+
                 // 6. Record bet in active bets
                 self.state
                     .active_bets
@@ -102,9 +118,7 @@ impl Contract for FlashbetUserContract {
                     .insert(&bet_id, bet.clone())
                     .expect("Failed to insert bet history");
 
-                // 7. Emit BetPlaced event
-                // Wave 1: Frontend will relay this bet to Market chain via RegisterBet operation
-                // Wave 2+: Market chain will subscribe to this event and process automatically
+                // 7. Emit BetPlaced event for Market chain to process
                 self.runtime.emit(
                     StreamName::from(b"user_bets".to_vec()),
                     &UserEvent::BetPlaced {
@@ -112,45 +126,8 @@ impl Contract for FlashbetUserContract {
                         bet: bet.clone(),
                     },
                 );
-            }
 
-            Operation::Deposit { amount } => {
-                // Credit balance
-                self.state.credit(amount);
-
-                // Emit event
-                self.runtime
-                    .emit(StreamName::from(b"user_events".to_vec()), &UserEvent::Deposited { amount });
-            }
-
-            Operation::ReceivePayout { payout } => {
-                // Wave 1: Frontend-triggered payout reception
-                // Same logic as execute_message Message::Payout handler
-
-                // 1. Credit the payout amount to balance
-                self.state.credit(payout.amount);
-
-                // 2. Remove from active bets
-                self.state
-                    .active_bets
-                    .remove(&payout.market_id)
-                    .expect("Failed to remove active bet");
-
-                // 3. Record payout in history
-                self.state
-                    .payout_history
-                    .insert(&payout.bet_id, payout.clone())
-                    .expect("Failed to insert payout history");
-
-                // 4. Emit event
-                self.runtime.emit(
-                    StreamName::from(b"user_events".to_vec()),
-                    &UserEvent::PayoutReceived {
-                        market_id: payout.market_id,
-                        bet_id: payout.bet_id,
-                        amount: payout.amount,
-                    },
-                );
+                OperationResponse::Ok
             }
         }
     }
@@ -163,22 +140,22 @@ impl Contract for FlashbetUserContract {
             }
 
             Message::Payout(payout) => {
-                // 1. Credit the payout amount to balance
-                self.state.credit(payout.amount);
+                // Note: Native tokens are automatically received via runtime.transfer()
+                // from Market chain. This message just updates our state tracking.
 
-                // 2. Remove from active bets
+                // 1. Remove from active bets
                 self.state
                     .active_bets
                     .remove(&payout.market_id)
                     .expect("Failed to remove active bet");
 
-                // 3. Record payout in history
+                // 2. Record payout in history
                 self.state
                     .payout_history
                     .insert(&payout.bet_id, payout.clone())
                     .expect("Failed to insert payout history");
 
-                // 4. Emit event
+                // 3. Emit event
                 self.runtime.emit(
                     StreamName::from(b"user_events".to_vec()),
                     &UserEvent::PayoutReceived {
@@ -206,32 +183,59 @@ mod tests {
     #[test]
     fn test_instantiate() {
         let mut app = create_app();
-        let initial_balance = linera_sdk::linera_base_types::Amount::from_tokens(1000);
 
-        app.instantiate(InstantiationArgument { initial_balance })
+        app.instantiate(InstantiationArgument {})
             .now_or_never()
             .expect("Instantiation should not await");
 
-        assert_eq!(*app.state.balance.get(), initial_balance);
         assert_eq!(*app.state.next_bet_id.get(), 0);
     }
 
     #[test]
-    fn test_deposit() {
-        let mut app = create_and_instantiate_app();
-        let deposit_amount = linera_sdk::linera_base_types::Amount::from_tokens(500);
-        let initial_balance = *app.state.balance.get();
+    fn test_balance_query() {
+        use linera_sdk::linera_base_types::AccountOwner;
 
-        app.execute_operation(Operation::Deposit {
-            amount: deposit_amount,
+        let mut app = create_app();
+        app.instantiate(InstantiationArgument {})
+            .now_or_never()
+            .expect("Instantiation should not await");
+
+        // Test balance operation
+        let response = app.execute_operation(Operation::Balance {
+            owner: AccountOwner::CHAIN,
         })
         .now_or_never()
-        .expect("Deposit should not await");
+        .expect("Balance operation should not await");
 
-        let expected_balance = initial_balance
-            .checked_add(deposit_amount)
-            .expect("Balance overflow");
-        assert_eq!(*app.state.balance.get(), expected_balance);
+        // Verify response is Balance variant
+        match response {
+            OperationResponse::Balance(amount) => {
+                // Balance query succeeded, amount should be non-negative
+                assert!(amount >= Amount::ZERO);
+            }
+            _ => panic!("Expected Balance response"),
+        }
+    }
+
+    #[test]
+    fn test_ticker_symbol() {
+        let mut app = create_app();
+        app.instantiate(InstantiationArgument {})
+            .now_or_never()
+            .expect("Instantiation should not await");
+
+        // Test ticker symbol operation
+        let response = app.execute_operation(Operation::TickerSymbol)
+            .now_or_never()
+            .expect("TickerSymbol operation should not await");
+
+        // Verify response is TickerSymbol variant with "BET"
+        match response {
+            OperationResponse::TickerSymbol(symbol) => {
+                assert_eq!(symbol, "BET", "Ticker symbol should be 'BET'");
+            }
+            _ => panic!("Expected TickerSymbol response"),
+        }
     }
 
     fn create_app() -> FlashbetUserContract {
@@ -242,16 +246,5 @@ mod tests {
                 .expect("Failed to load state"),
             runtime,
         }
-    }
-
-    fn create_and_instantiate_app() -> FlashbetUserContract {
-        let mut app = create_app();
-        let initial_balance = linera_sdk::linera_base_types::Amount::from_tokens(1000);
-
-        app.instantiate(InstantiationArgument { initial_balance })
-            .now_or_never()
-            .expect("Instantiation should not await");
-
-        app
     }
 }

@@ -80,7 +80,7 @@ pub enum Operation {
     CancelMarket,
 }
 
-/// Messages received by the Market Chain
+/// Messages sent/received by the Market Chain
 #[derive(Debug, Deserialize, Serialize)]
 pub enum Message {
     /// Bet placement from a User Chain
@@ -88,6 +88,10 @@ pub enum Message {
 
     /// Oracle event result (received via event stream)
     OracleResult(EventResult),
+
+    /// Payout notification sent to User Chain
+    /// Accompanies native token transfer for state tracking
+    Payout(flashbet_shared::Payout),
 }
 
 /// Instantiation argument for Market Chain
