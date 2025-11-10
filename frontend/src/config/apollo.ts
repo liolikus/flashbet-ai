@@ -28,17 +28,17 @@ export const client = new ApolloClient({
   },
 });
 
-// Application IDs from Local Testnet deployment (Native Token Integration + Transfer Operation)
+// Application IDs from Current Deployment (Production)
 export const APP_IDS = {
-  // All applications deployed on same chain for local testnet
-  CHAIN: '8e9b4031d41c1d2fcf85d9f422b4f26a6c69c1297558aa94cb6c806d706525fa', // Local testnet
-  MARKET_CHAIN: '8e9b4031d41c1d2fcf85d9f422b4f26a6c69c1297558aa94cb6c806d706525fa', // Local testnet
-  ORACLE_CHAIN: '8e9b4031d41c1d2fcf85d9f422b4f26a6c69c1297558aa94cb6c806d706525fa', // Local testnet
-  ORACLE: '0b47afb1296d2a8eb5f588b21d36daa578ec481ced9da248896040f055f43b42', // Local testnet
-  MARKET: 'ebfb477457ad2ee174fde46c96622293dacc1364c4678451cf65529c5bc7cab8', // Local testnet (Native Token Integration)
-  USER: '478dd1d59316ab0390fdd6027b87d3bf52ad987f79763d289d16d8f3b44f9229', // Local testnet (Native Token Integration + Transfer)
-  // AccountOwner for local testnet
-  USER_ACCOUNT_OWNER: '0x8545151afa816e0794442bc3a7a83a0ee7ef9f4cc1e5e78611b00d118db9569a',
+  // All applications deployed on same chain
+  CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
+  MARKET_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
+  ORACLE_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
+  ORACLE: 'd4a3c79502b626278c2d10457947440a7b72f86207ac2349e68fd7ece154ce01',
+  MARKET: '8d4e1c6afd378769dafb2fc8cee0897f886d127a9160757e0c2c3317a31e8017',
+  USER: '8fd6c26d5068f53015fcf90f3770e325d55b98e27ddadb9054d60372f6421156',
+  // AccountOwner for current deployment
+  USER_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
   // AccountOwner for Oracle Chain (same wallet owner)
-  ORACLE_ACCOUNT_OWNER: '0x8545151afa816e0794442bc3a7a83a0ee7ef9f4cc1e5e78611b00d118db9569a',
+  ORACLE_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
 };
