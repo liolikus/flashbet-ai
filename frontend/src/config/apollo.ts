@@ -28,17 +28,17 @@ export const client = new ApolloClient({
   },
 });
 
-// Application IDs from Conway Testnet deployment
+// Application IDs from Local Testnet deployment (Native Token Integration)
 export const APP_IDS = {
-  // All applications deployed on same chain for Conway testnet
-  CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // User Chain (Conway)
-  MARKET_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // Market Chain (Conway)
-  ORACLE_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7', // Oracle Chain (Conway)
-  ORACLE: 'd4a3c79502b626278c2d10457947440a7b72f86207ac2349e68fd7ece154ce01', // Conway testnet
-  MARKET: '8d4e1c6afd378769dafb2fc8cee0897f886d127a9160757e0c2c3317a31e8017', // Conway testnet (UPDATED with flexible event ID validation)
-  USER: '8fd6c26d5068f53015fcf90f3770e325d55b98e27ddadb9054d60372f6421156', // Conway testnet
-  // AccountOwner for Conway testnet
-  USER_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
+  // All applications deployed on same chain for local testnet
+  CHAIN: 'f72fba0e0af9faec630ab63f05f801622c8d62799aca2e5cb5c2b359f95c516e', // Local testnet
+  MARKET_CHAIN: 'f72fba0e0af9faec630ab63f05f801622c8d62799aca2e5cb5c2b359f95c516e', // Local testnet
+  ORACLE_CHAIN: 'f72fba0e0af9faec630ab63f05f801622c8d62799aca2e5cb5c2b359f95c516e', // Local testnet
+  ORACLE: '4be0984e8077f10a08eb00b4464e00d2f75f46e3ac2ce44b864c4db37bc5bf29', // Local testnet
+  MARKET: '0e694ac7be7384ea87ca4d92b50a7828b869c9721112192cec524d9607dc4853', // Local testnet (Native Token Integration)
+  USER: '8d2ec2ac59adfccc5acfd5bb5b113ce6b3bc126dc9e5aecaaa66e4c43243afaa', // Local testnet (Native Token Integration)
+  // AccountOwner for local testnet
+  USER_ACCOUNT_OWNER: '0xb94fab4f7c746ecb4de0c0da52dd4cb74cec8edd88d1d8d3772dabe20497c154',
   // AccountOwner for Oracle Chain (same wallet owner)
-  ORACLE_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
+  ORACLE_ACCOUNT_OWNER: '0xb94fab4f7c746ecb4de0c0da52dd4cb74cec8edd88d1d8d3772dabe20497c154',
 };

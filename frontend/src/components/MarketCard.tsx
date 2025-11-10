@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { MarketState, Outcome as OutcomeType } from '../types';
 import { Outcome } from '../types';
 import { formatAmount, calculateOdds, getOutcomeDisplay, formatRelativeTime } from '../utils/helpers';
+import { useToken } from '../contexts/TokenContext';
 
 interface MarketCardProps {
   market: MarketState;
@@ -10,6 +11,7 @@ interface MarketCardProps {
 }
 
 export default function MarketCard({ market, onPlaceBet, onCloseMarket }: MarketCardProps) {
+  const { tickerSymbol } = useToken();
   const [selectedOutcome, setSelectedOutcome] = useState<OutcomeType | null>(null);
   const [betAmount, setBetAmount] = useState('');
   const [placing, setPlacing] = useState(false);
@@ -85,7 +87,7 @@ export default function MarketCard({ market, onPlaceBet, onCloseMarket }: Market
         <div>
           <div className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Total Pool</div>
           <div className="text-sm font-bold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
-            {formatAmount(market.totalPool)} tokens
+            {formatAmount(market.totalPool)} {tickerSymbol}
           </div>
         </div>
         <div>
@@ -159,7 +161,7 @@ export default function MarketCard({ market, onPlaceBet, onCloseMarket }: Market
           </div>
           {betAmount && (
             <p className="text-xs mt-1" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
-              Potential payout: {(parseFloat(betAmount) * odds[selectedOutcome]).toFixed(2)} tokens
+              Potential payout: {(parseFloat(betAmount) * odds[selectedOutcome]).toFixed(2)} {tickerSymbol}
               (at current odds)
             </p>
           )}

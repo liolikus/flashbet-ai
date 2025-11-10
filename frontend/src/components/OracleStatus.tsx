@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { APP_IDS, BASE_URL } from '../config/apollo';
+import { useToken } from '../contexts/TokenContext';
 
 interface MarketData {
   eventId: string;
@@ -19,6 +20,7 @@ interface ActivityEvent {
 }
 
 export function OracleStatus() {
+  const { tickerSymbol } = useToken();
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,7 +159,7 @@ export function OracleStatus() {
               </div>
               <div>
                 <span style={{ color: 'hsl(var(--heroui-foreground-600))' }}>Total Pool:</span>
-                <p className="font-semibold">{(parseFloat(marketData.totalPool) / 1e18).toFixed(0)} tokens</p>
+                <p className="font-semibold">{(parseFloat(marketData.totalPool) / 1e18).toFixed(0)} {tickerSymbol}</p>
               </div>
               <div>
                 <span style={{ color: 'hsl(var(--heroui-foreground-600))' }}>Bets Placed:</span>

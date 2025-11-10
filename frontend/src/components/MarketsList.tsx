@@ -3,10 +3,12 @@ import MarketCard from './MarketCard';
 import type { MarketState, Outcome } from '../types';
 import { parseAmount } from '../utils/helpers';
 import { APP_IDS, BASE_URL } from '../config/apollo';
+import { useToken } from '../contexts/TokenContext';
 
 type MarketFilter = 'all' | 'active' | 'ended';
 
 export default function MarketsList() {
+  const { tickerSymbol } = useToken();
   const [markets, setMarkets] = useState<MarketState[]>([]);
   const [loading, setLoading] = useState(true); // Start with true for initial load
   const [initialLoad, setInitialLoad] = useState(true); // Track if this is the first load
@@ -192,7 +194,7 @@ export default function MarketsList() {
       console.log(`  👤 User App: ${APP_IDS.USER.substring(0, 16)}...`);
       console.log(`  🎯 Market: ${eventId}`);
       console.log(`  🎲 Outcome: ${outcome}`);
-      console.log(`  💵 Amount: ${amount} tokens`);
+      console.log(`  💵 Amount: ${amount} ${tickerSymbol}`);
       const userResponse = await fetch(
         `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
         {
@@ -271,7 +273,7 @@ export default function MarketsList() {
       console.log('📊 Transaction Summary:');
       console.log(`  🎯 Market: ${eventId}`);
       console.log(`  🎲 Bet Placed: ${outcome.toUpperCase()}`);
-      console.log(`  💵 Amount: ${amount} tokens`);
+      console.log(`  💵 Amount: ${amount} ${tickerSymbol}`);
       console.log(`  ⛓️  Chains Updated: 2 (User + Market)`);
       console.log('');
       console.log('✅ Status:');
@@ -312,10 +314,10 @@ export default function MarketsList() {
 
       console.log('');
       console.log('💰 Current Pool State:');
-      console.log(`  Total Pool: ${totalPool.toFixed(2)} tokens`);
-      console.log(`  Home Pool: ${homePool.toFixed(2)} tokens (${market.betCount > 0 ? ((homePool / totalPool) * 100).toFixed(1) : 0}%)`);
-      console.log(`  Away Pool: ${awayPool.toFixed(2)} tokens (${market.betCount > 0 ? ((awayPool / totalPool) * 100).toFixed(1) : 0}%)`);
-      console.log(`  Draw Pool: ${drawPool.toFixed(2)} tokens (${market.betCount > 0 ? ((drawPool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Total Pool: ${totalPool.toFixed(2)} ${tickerSymbol}`);
+      console.log(`  Home Pool: ${homePool.toFixed(2)} ${tickerSymbol} (${market.betCount > 0 ? ((homePool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Away Pool: ${awayPool.toFixed(2)} ${tickerSymbol} (${market.betCount > 0 ? ((awayPool / totalPool) * 100).toFixed(1) : 0}%)`);
+      console.log(`  Draw Pool: ${drawPool.toFixed(2)} ${tickerSymbol} (${market.betCount > 0 ? ((drawPool / totalPool) * 100).toFixed(1) : 0}%)`);
       console.log(`  Total Bets: ${market.betCount}`);
 
       // For demo: randomly select a winning outcome
@@ -330,7 +332,7 @@ export default function MarketsList() {
       console.log('');
       console.log('📡 Publishing oracle result to resolve market...');
       console.log(`  🎯 Demo Result: ${randomOutcome} wins (simulated)`);
-      console.log(`  💵 Winning Pool: ${winningPool.toFixed(2)} tokens`);
+      console.log(`  💵 Winning Pool: ${winningPool.toFixed(2)} ${tickerSymbol}`);
       console.log(`  📈 Payout Ratio: ${payoutPerToken.toFixed(2)}x`);
 
       const response = await fetch(
@@ -365,10 +367,10 @@ export default function MarketsList() {
       console.log('📊 Resolution Summary:');
       console.log(`  🎲 Market: ${eventId}`);
       console.log(`  🏆 Winner: ${randomOutcome}`);
-      console.log(`  💰 Total Pool Distributed: ${totalPool.toFixed(2)} tokens`);
-      console.log(`  👥 Winners' Pool: ${winningPool.toFixed(2)} tokens`);
+      console.log(`  💰 Total Pool Distributed: ${totalPool.toFixed(2)} ${tickerSymbol}`);
+      console.log(`  👥 Winners' Pool: ${winningPool.toFixed(2)} ${tickerSymbol}`);
       console.log(`  📈 Payout Multiplier: ${payoutPerToken.toFixed(2)}x`);
-      console.log(`  📊 ${winningPool > 0 ? `Winners receive ${payoutPerToken.toFixed(2)} tokens per 1 token bet` : 'No bets on winning outcome'}`);
+      console.log(`  📊 ${winningPool > 0 ? `Winners receive ${payoutPerToken.toFixed(2)} ${tickerSymbol} per 1 ${tickerSymbol} bet` : 'No bets on winning outcome'}`);
       console.log('');
       console.log('✅ Status:');
       console.log(`  ✓ Market Status: Resolved`);
@@ -443,7 +445,7 @@ export default function MarketsList() {
         const betAmount = parseFloat(bet.amount);
         const payoutAmount = Math.floor(betAmount * payoutMultiplier);
 
-        console.log(`  💰 Payout ${i + 1}/${winningBets.length}: ${(payoutAmount / 1e18).toFixed(2)} tokens`);
+        console.log(`  💰 Payout ${i + 1}/${winningBets.length}: ${(payoutAmount / 1e18).toFixed(2)} ${tickerSymbol}`);
 
         // Call User contract's receivePayout mutation
         const payoutResponse = await fetch(

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { formatAmount, parseAmount } from '../utils/helpers';
 import { APP_IDS, BASE_URL } from '../config/apollo';
+import { useToken } from '../contexts/TokenContext';
 
 export default function UserBalance() {
+  const { tickerSymbol } = useToken();
   const [balance, setBalance] = useState('0');
-  const [depositAmount, setDepositAmount] = useState('');
-  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [transferAmount, setTransferAmount] = useState('');
+  const [targetChain, setTargetChain] = useState('');
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [depositing, setDepositing] = useState(false);
+  const [transferring, setTransferring] = useState(false);
 
   const fetchBalance = async () => {
     setLoading(true);
@@ -37,33 +40,42 @@ export default function UserBalance() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleDeposit = async () => {
-    if (!depositAmount || parseFloat(depositAmount) <= 0) return;
+  const handleTransfer = async (destinationChain?: string) => {
+    const chainToUse = destinationChain || targetChain;
+    if (!transferAmount || parseFloat(transferAmount) <= 0 || !chainToUse) return;
 
-    setDepositing(true);
+    setTransferring(true);
     try {
+      // Native token transfer using runtime.transfer()
+      // Note: This requires a Transfer operation to be added to the backend
+      // For now, display info about native tokens
+      console.log(`Transfer ${transferAmount} ${tickerSymbol} to chain ${chainToUse}`);
+
       const response = await fetch(
         `${BASE_URL}/chains/${APP_IDS.CHAIN}/applications/${APP_IDS.USER}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            query: `mutation { deposit(amount: "${parseAmount(depositAmount)}") }`,
+            query: `mutation { transfer(toChain: "${chainToUse}", amount: "${parseAmount(transferAmount)}") }`,
           }),
         }
       );
       const data = await response.json();
       if (!data.errors) {
-        setDepositAmount('');
-        setIsDepositOpen(false);
+        setTransferAmount('');
+        setTargetChain('');
+        setIsTransferOpen(false);
         await fetchBalance();
       } else {
-        console.error('Deposit failed:', data.errors);
+        console.error('Transfer failed:', data.errors);
+        alert(`Transfer failed: ${JSON.stringify(data.errors)}`);
       }
     } catch (error) {
-      console.error('Deposit failed:', error);
+      console.error('Transfer failed:', error);
+      alert(`Transfer error: ${error}`);
     } finally {
-      setDepositing(false);
+      setTransferring(false);
     }
   };
 
@@ -88,10 +100,10 @@ export default function UserBalance() {
             <p className="text-sm" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Chain: {APP_IDS.CHAIN.slice(0, 8)}...</p>
           </div>
           <button
-            onClick={() => setIsDepositOpen(!isDepositOpen)}
+            onClick={() => setIsTransferOpen(!isTransferOpen)}
             className="btn-secondary text-sm"
           >
-            {isDepositOpen ? 'Cancel' : 'Deposit'}
+            {isTransferOpen ? 'Cancel' : 'Transfer'}
           </button>
         </div>
 
@@ -104,37 +116,43 @@ export default function UserBalance() {
               <div className="text-4xl font-bold">
                 {formatAmount(balance)}
               </div>
-              <div className="text-sm mt-1" style={{ opacity: 0.8 }}>tokens</div>
+              <div className="text-sm mt-1" style={{ opacity: 0.8 }}>{tickerSymbol}</div>
             </div>
           )}
         </div>
 
-        {/* Deposit Form */}
-        {isDepositOpen && (
+        {/* Transfer Form */}
+        {isTransferOpen && (
           <div className="border-t pt-4" style={{ borderColor: 'hsl(var(--heroui-default-200))' }}>
             <label className="block text-sm font-medium mb-2" style={{ color: 'hsl(var(--heroui-foreground))' }}>
-              Deposit Amount
+              Transfer {tickerSymbol} to Market Chain
             </label>
-            <div className="flex space-x-2">
-              <input
-                type="number"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                placeholder="Enter amount"
-                className="flex-1"
-                min="0"
-                step="0.01"
-              />
-              <button
-                onClick={handleDeposit}
-                disabled={depositing || !depositAmount}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {depositing ? 'Depositing...' : 'Deposit'}
-              </button>
+            <p className="text-xs mb-3" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
+              Transfer tokens to the Market Chain to place bets
+            </p>
+            <div className="space-y-2 mb-3">
+              <div>
+                <label className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Amount</label>
+                <input
+                  type="number"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
             </div>
+            <button
+              onClick={() => handleTransfer(APP_IDS.MARKET_CHAIN)}
+              disabled={transferring || !transferAmount || parseFloat(transferAmount) <= 0}
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {transferring ? 'Transferring...' : `Transfer to Market Chain`}
+            </button>
             <p className="text-xs mt-2" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>
-              Note: This will add tokens to your User Chain balance
+              Destination: {APP_IDS.MARKET_CHAIN.slice(0, 8)}...{APP_IDS.MARKET_CHAIN.slice(-6)}
             </p>
           </div>
         )}
