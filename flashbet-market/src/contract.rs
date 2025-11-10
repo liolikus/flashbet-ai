@@ -6,6 +6,7 @@ use flashbet_market::{InstantiationArgument, Message, Operation};
 use flashbet_shared::{
     EventResult, MarketEvent, MarketId, MarketStatus, Payout,
 };
+use flashbet_token; // BET token application for cross-application calls
 use linera_sdk::{
     linera_base_types::{ApplicationId, StreamName, StreamUpdate, WithContractAbi},
     views::{RootView, View},
@@ -50,6 +51,13 @@ impl Contract for FlashbetMarketContract {
             .parse()
             .expect("Invalid Oracle application ID format");
         self.state.oracle_app_id.set(Some(oracle_app_id));
+
+        // Store BET token application ID
+        // Convert from untyped ApplicationId to typed ApplicationId<FlashbetTokenAbi>
+        // This is safe because ApplicationId's type parameter is phantom data for type safety only
+        let typed_app_id: linera_sdk::linera_base_types::ApplicationId<flashbet_token::FlashbetTokenAbi> =
+            unsafe { std::mem::transmute(argument.bet_token_id) };
+        self.state.bet_token_id.set(Some(typed_app_id));
 
         // Subscribe to Oracle Chain events for automatic result processing
         self.runtime.subscribe_to_events(
@@ -304,8 +312,14 @@ impl FlashbetMarketContract {
             },
         );
 
-        // Distribute payouts to winners using native token transfers
-        use linera_sdk::linera_base_types::Account;
+        // Distribute payouts to winners using BET token transfers
+        use linera_sdk::{abis::fungible::FungibleResponse, linera_base_types::AccountOwner};
+
+        let bet_token_id = self
+            .state
+            .bet_token_id
+            .get()
+            .expect("BET token ID not initialized");
 
         for bet in winning_bets {
             let payout_amount = self.state.calculate_payout(&bet, &result.outcome).await;
@@ -318,15 +332,26 @@ impl FlashbetMarketContract {
                     timestamp: self.runtime.system_time(),
                 };
 
-                // Transfer native tokens from Market chain balance to winner's account
-                use linera_sdk::linera_base_types::AccountOwner;
-                let winner_account = Account {
-                    chain_id: bet.user_chain,
-                    owner: bet.user,
+                // Transfer BET tokens to winner via BET token application
+                // Transfer from Market chain to winner's chain
+                let transfer_operation = flashbet_token::Operation::TransferCrossChain {
+                    destination: bet.user_chain,
+                    to: bet.user, // Transfer to winner's account
+                    amount: payout_amount,
                 };
 
-                // Transfer from Market chain balance to user
-                self.runtime.transfer(AccountOwner::CHAIN, winner_account, payout_amount);
+                let response = self
+                    .runtime
+                    .call_application::<flashbet_token::FlashbetTokenAbi>(
+                        false,
+                        bet_token_id,
+                        &transfer_operation,
+                    );
+
+                match response {
+                    FungibleResponse::Ok => {}
+                    _ => panic!("Unexpected response from BET token TransferCrossChain operation"),
+                }
 
                 // Send Payout message to update User chain state tracking
                 self.runtime

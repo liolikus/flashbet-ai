@@ -1,14 +1,21 @@
 //! User Chain State
 //!
 //! Manages active bets and betting history.
-//! Balances are now tracked via Linera's native token system (runtime.owner_balance()).
+//! Balances are now tracked via BET token application.
 
 use flashbet_shared::{Bet, MarketId, Payout};
-use linera_sdk::views::{linera_views, MapView, RegisterView, RootView, ViewStorageContext};
+use linera_sdk::{
+    linera_base_types::ApplicationId,
+    views::{linera_views, MapView, RegisterView, RootView, ViewStorageContext},
+};
 
 #[derive(RootView)]
 #[view(context = ViewStorageContext)]
 pub struct FlashbetUserState {
+    /// BET token application ID for token operations
+    /// Typed with FlashbetTokenAbi for cross-application calls
+    pub bet_token_id: RegisterView<Option<ApplicationId<flashbet_token::FlashbetTokenAbi>>>,
+
     /// Active bets (not yet resolved)
     /// Maps MarketId -> Bet
     pub active_bets: MapView<MarketId, Bet>,

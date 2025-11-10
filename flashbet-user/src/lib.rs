@@ -1,17 +1,15 @@
 //! User Chain - Personal betting chain for each user
 //!
 //! Handles balance management, bet placement, and payout reception.
+//! Uses BET token application for all token operations.
 
 use async_graphql::{Request, Response, SimpleObject};
 use flashbet_shared::{EventId, MarketId, Outcome, Payout, UserEvent};
 use linera_sdk::{
     graphql::GraphQLMutationRoot,
-    linera_base_types::{AccountOwner, Amount, ChainId, ContractAbi, ServiceAbi},
+    linera_base_types::{AccountOwner, Amount, ApplicationId, ChainId, ContractAbi, ServiceAbi},
 };
 use serde::{Deserialize, Serialize};
-
-/// FlashBet native token ticker symbol
-pub const TICKER_SYMBOL: &str = "BET";
 
 pub struct FlashbetUserAbi;
 
@@ -39,28 +37,29 @@ pub enum OperationResponse {
 /// Operations that users can perform on their User Chain
 #[derive(Debug, Deserialize, Serialize, GraphQLMutationRoot)]
 pub enum Operation {
-    /// Query native token balance for an account owner
-    /// Follows native-fungible example pattern
+    /// Query BET token balance for an account owner
+    /// Calls BET token application's Balance operation
     Balance {
         /// Account owner to query balance for
         owner: AccountOwner,
     },
 
-    /// Query the ticker symbol for FlashBet native tokens
+    /// Query the ticker symbol for BET tokens
+    /// Calls BET token application's TickerSymbol operation
     /// Returns "BET"
     TickerSymbol,
 
-    /// Transfer native tokens to another chain
-    /// Uses runtime.transfer() for cross-chain transfers
+    /// Transfer BET tokens to another chain
+    /// Calls BET token application's TransferCrossChain operation
     Transfer {
         /// Destination chain ID
         to_chain: ChainId,
-        /// Amount to transfer (in native tokens)
+        /// Amount to transfer (in BET tokens)
         amount: Amount,
     },
 
     /// Place a bet on a market
-    /// This operation transfers native tokens from user to Market chain
+    /// Calls BET token application to transfer tokens from user to Market chain
     PlaceBet {
         /// The Market Chain to send the bet to
         market_chain: ChainId,
@@ -70,7 +69,7 @@ pub enum Operation {
         event_id: EventId,
         /// Chosen outcome (Home/Away/Draw)
         outcome: Outcome,
-        /// Bet amount (in native tokens)
+        /// Bet amount (in BET tokens)
         amount: Amount,
     },
 }
@@ -87,5 +86,10 @@ pub enum Message {
 }
 
 /// Instantiation argument for User Chain
-/// Users receive native tokens via Linera's native token system
-pub type InstantiationArgument = ();
+/// Requires BET token ApplicationId for token operations
+#[derive(Debug, Deserialize, Serialize, SimpleObject)]
+pub struct InstantiationArgument {
+    /// BET token application ID for calling token operations
+    /// Stored without type parameter for GraphQL compatibility
+    pub bet_token_id: ApplicationId,
+}

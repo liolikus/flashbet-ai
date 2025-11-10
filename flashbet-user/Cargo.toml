@@ -12,6 +12,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 async-trait.workspace = true
 flashbet-shared = { path = "../flashbet-shared" }
+flashbet-token = { path = "../flashbet-token" }
 
 [dev-dependencies]
 linera-sdk = { version = "0.15.3", features = ["test", "wasmer"] }

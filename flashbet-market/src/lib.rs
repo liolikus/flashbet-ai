@@ -102,4 +102,7 @@ pub struct InstantiationArgument {
     pub oracle_chain: ChainId,
     /// Oracle Application ID to subscribe to
     pub oracle_app_id: String,
+    /// BET token application ID for token operations
+    /// Stored without type parameter for GraphQL compatibility
+    pub bet_token_id: linera_sdk::linera_base_types::ApplicationId,
 }

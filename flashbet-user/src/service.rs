@@ -115,9 +115,9 @@ impl QueryRoot {
         self.balance
     }
 
-    /// Get the ticker symbol for FlashBet native tokens
+    /// Get the ticker symbol for BET tokens
     async fn ticker_symbol(&self) -> String {
-        flashbet_user::TICKER_SYMBOL.to_string()
+        "BET".to_string()
     }
 
     /// Get all active bets (not yet resolved)

@@ -3,6 +3,7 @@
 mod state;
 
 use flashbet_shared::{Bet, UserEvent};
+use flashbet_token; // BET token application for cross-application calls
 use flashbet_user::{InstantiationArgument, Message, Operation, OperationResponse};
 use linera_sdk::{
     linera_base_types::{Amount, StreamName, WithContractAbi},
@@ -36,33 +37,79 @@ impl Contract for FlashbetUserContract {
         FlashbetUserContract { state, runtime }
     }
 
-    async fn instantiate(&mut self, _argument: Self::InstantiationArgument) {
+    async fn instantiate(&mut self, argument: Self::InstantiationArgument) {
         // Validate application parameters
         self.runtime.application_parameters();
 
+        // Store BET token application ID
+        // Convert from untyped ApplicationId to typed ApplicationId<FlashbetTokenAbi>
+        // This is safe because ApplicationId's type parameter is phantom data for type safety only
+        let typed_app_id: linera_sdk::linera_base_types::ApplicationId<flashbet_token::FlashbetTokenAbi> =
+            unsafe { std::mem::transmute(argument.bet_token_id) };
+        self.state.bet_token_id.set(Some(typed_app_id));
+
         // Initialize bet ID counter
-        // Note: Balances are now managed by Linera's native token system
+        // Note: Balances are now managed by BET token application
         self.state.next_bet_id.set(0);
     }
 
     async fn execute_operation(&mut self, operation: Self::Operation) -> Self::Response {
         match operation {
             Operation::Balance { owner } => {
-                // Query native token balance using runtime API
-                // Follows native-fungible example pattern
-                let balance = self.runtime.owner_balance(owner);
-                OperationResponse::Balance(balance)
+                // Query BET token balance by calling BET token application
+                use linera_sdk::abis::fungible::FungibleResponse;
+
+                let bet_token_id = self
+                    .state
+                    .bet_token_id
+                    .get()
+                    .expect("BET token ID not initialized");
+                let balance_operation = flashbet_token::Operation::Balance { owner };
+
+                let response = self
+                    .runtime
+                    .call_application::<flashbet_token::FlashbetTokenAbi>(
+                        true,
+                        bet_token_id,
+                        &balance_operation,
+                    );
+
+                match response {
+                    FungibleResponse::Balance(balance) => OperationResponse::Balance(balance),
+                    _ => panic!("Unexpected response from BET token Balance operation"),
+                }
             }
 
             Operation::TickerSymbol => {
-                // Return FlashBet native token ticker symbol
-                // Follows native-fungible example pattern
-                OperationResponse::TickerSymbol(flashbet_user::TICKER_SYMBOL.to_string())
+                // Query BET token ticker symbol by calling BET token application
+                use linera_sdk::abis::fungible::FungibleResponse;
+
+                let bet_token_id = self
+                    .state
+                    .bet_token_id
+                    .get()
+                    .expect("BET token ID not initialized");
+                let ticker_operation = flashbet_token::Operation::TickerSymbol;
+
+                let response = self
+                    .runtime
+                    .call_application::<flashbet_token::FlashbetTokenAbi>(
+                        true,
+                        bet_token_id,
+                        &ticker_operation,
+                    );
+
+                match response {
+                    FungibleResponse::TickerSymbol(symbol) => {
+                        OperationResponse::TickerSymbol(symbol)
+                    }
+                    _ => panic!("Unexpected response from BET token TickerSymbol operation"),
+                }
             }
 
             Operation::Transfer { to_chain, amount } => {
-                // Transfer native tokens to another chain
-                // Uses runtime.transfer() following native-fungible example
+                // Transfer BET tokens to another chain via BET token application
+                use linera_sdk::{abis::fungible::FungibleResponse, linera_base_types::AccountOwner};
 
                 // 1. Validate amount
                 assert!(amount > Amount::ZERO, "Transfer amount must be positive");
@@ -78,16 +125,30 @@ impl Contract for FlashbetUserContract {
                     .check_account_permission(signer)
                     .expect("User not authorized");
 
-                // 4. Transfer native tokens to destination chain
-                use linera_sdk::linera_base_types::{Account, AccountOwner};
-                let destination = Account {
-                    chain_id: to_chain,
-                    owner: AccountOwner::CHAIN, // Transfer to chain balance
+                // 4. Call BET token TransferCrossChain operation
+                let bet_token_id = self
+                    .state
+                    .bet_token_id
+                    .get()
+                    .expect("BET token ID not initialized");
+                let transfer_operation = flashbet_token::Operation::TransferCrossChain {
+                    destination: to_chain,
+                    to: AccountOwner::CHAIN, // Transfer to chain balance
+                    amount,
                 };
 
-                self.runtime.transfer(signer, destination, amount);
+                let response = self
+                    .runtime
+                    .call_application::<flashbet_token::FlashbetTokenAbi>(
+                        false,
+                        bet_token_id,
+                        &transfer_operation,
+                    );
 
-                OperationResponse::Ok
+                match response {
+                    FungibleResponse::Ok => OperationResponse::Ok,
+                    _ => panic!("Unexpected response from BET token TransferCrossChain operation"),
+                }
             }
 
             Operation::PlaceBet {
@@ -126,16 +187,33 @@ impl Contract for FlashbetUserContract {
                     user_chain,
                 };
 
-                // 5. Transfer native tokens to Market chain
-                // This will fail if user has insufficient balance (checked by runtime)
-                use linera_sdk::linera_base_types::{Account, AccountOwner};
-                let market_account = Account {
-                    chain_id: market_chain,
-                    owner: AccountOwner::CHAIN, // Transfer to Market chain balance
+                // 5. Transfer BET tokens to Market chain via BET token application
+                // This will fail if user has insufficient balance (checked by BET token app)
+                use linera_sdk::{abis::fungible::FungibleResponse, linera_base_types::AccountOwner};
+
+                let bet_token_id = self
+                    .state
+                    .bet_token_id
+                    .get()
+                    .expect("BET token ID not initialized");
+                let transfer_operation = flashbet_token::Operation::TransferCrossChain {
+                    destination: market_chain,
+                    to: AccountOwner::CHAIN, // Transfer to Market chain balance
+                    amount,
                 };
 
-                self.runtime
-                    .transfer(signer, market_account, amount);
+                let response = self
+                    .runtime
+                    .call_application::<flashbet_token::FlashbetTokenAbi>(
+                        false,
+                        bet_token_id,
+                        &transfer_operation,
+                    );
+
+                match response {
+                    FungibleResponse::Ok => {}
+                    _ => panic!("Unexpected response from BET token TransferCrossChain operation"),
+                }
 
                 // 6. Record bet in active bets
                 self.state

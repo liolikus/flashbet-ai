@@ -41,6 +41,10 @@ pub struct FlashbetMarketState {
     /// Oracle application ID (shared across all markets)
     pub oracle_app_id: RegisterView<Option<ApplicationId>>,
 
+    /// BET token application ID for token operations
+    /// Typed with FlashbetTokenAbi for cross-application calls
+    pub bet_token_id: RegisterView<Option<ApplicationId<flashbet_token::FlashbetTokenAbi>>>,
+
     /// Subscribed User applications (shared across all markets)
     /// Tracks which User chains/apps we're listening to
     pub subscribed_users: SetView<ApplicationId>,
