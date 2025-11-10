@@ -50,6 +50,15 @@ pub enum Operation {
     /// Returns "BET"
     TickerSymbol,
 
+    /// Transfer native tokens to another chain
+    /// Uses runtime.transfer() for cross-chain transfers
+    Transfer {
+        /// Destination chain ID
+        to_chain: ChainId,
+        /// Amount to transfer (in native tokens)
+        amount: Amount,
+    },
+
     /// Place a bet on a market
     /// This operation transfers native tokens from user to Market chain
     PlaceBet {

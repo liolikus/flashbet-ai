@@ -60,6 +60,36 @@ impl Contract for FlashbetUserContract {
                 OperationResponse::TickerSymbol(flashbet_user::TICKER_SYMBOL.to_string())
             }
 
+            Operation::Transfer { to_chain, amount } => {
+                // Transfer native tokens to another chain
+                // Uses runtime.transfer() following native-fungible example
+
+                // 1. Validate amount
+                assert!(amount > Amount::ZERO, "Transfer amount must be positive");
+
+                // 2. Get authenticated signer
+                let signer = self
+                    .runtime
+                    .authenticated_signer()
+                    .expect("Transfer operation must be signed");
+
+                // 3. Check user has permission
+                self.runtime
+                    .check_account_permission(signer)
+                    .expect("User not authorized");
+
+                // 4. Transfer native tokens to destination chain
+                use linera_sdk::linera_base_types::{Account, AccountOwner};
+                let destination = Account {
+                    chain_id: to_chain,
+                    owner: AccountOwner::CHAIN, // Transfer to chain balance
+                };
+
+                self.runtime.transfer(signer, destination, amount);
+
+                OperationResponse::Ok
+            }
+
             Operation::PlaceBet {
                 market_chain,
                 market_id,
