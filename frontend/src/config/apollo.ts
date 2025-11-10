@@ -28,15 +28,16 @@ export const client = new ApolloClient({
   },
 });
 
-// Application IDs from Current Deployment (Production)
+// Application IDs from BET Token Deployment (Version 2)
 export const APP_IDS = {
   // All applications deployed on same chain
   CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
   MARKET_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
   ORACLE_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
-  ORACLE: 'd4a3c79502b626278c2d10457947440a7b72f86207ac2349e68fd7ece154ce01',
-  MARKET: '8d4e1c6afd378769dafb2fc8cee0897f886d127a9160757e0c2c3317a31e8017',
-  USER: '8fd6c26d5068f53015fcf90f3770e325d55b98e27ddadb9054d60372f6421156',
+  TOKEN: '781b840751e0397da8afee1a869bd216e89001c9356b3b76b4dc8923fe42351f', // BET Token (50 supply)
+  ORACLE: 'bd92f873e379c0b575c4605d7ad00ca15878f17e8438eaeb4897a70e5ed0d5bc',
+  MARKET: 'a58d1eb3f46f18a3c3ac93146df51787be23363709bf5f4f427908bb922e8905',
+  USER: 'dfcc282e744e3588372a9647659497af1319abad759e63313782e211f12f3b03',
   // AccountOwner for current deployment
   USER_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
   // AccountOwner for Oracle Chain (same wallet owner)
