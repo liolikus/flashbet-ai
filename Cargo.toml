@@ -4,6 +4,7 @@ members = [
     "flashbet-market",
     "flashbet-oracle",
     "flashbet-shared",
+    "flashbet-token",
 ]
 resolver = "2"
 

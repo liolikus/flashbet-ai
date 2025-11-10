@@ -1,0 +1,24 @@
+[package]
+name = "flashbet-token"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-graphql = "7.0.11"
+linera-sdk = "0.15.4"
+serde = { version = "1.0.217", features = ["derive"] }
+thiserror = "2.0.9"
+
+[dev-dependencies]
+linera-sdk = { version = "0.15.4", features = ["test"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "flashbet_token_contract"
+path = "src/contract.rs"
+
+[[bin]]
+name = "flashbet_token_service"
+path = "src/service.rs"
