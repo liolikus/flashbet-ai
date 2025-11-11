@@ -34,10 +34,10 @@ export const APP_IDS = {
   CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
   MARKET_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
   ORACLE_CHAIN: '15fbdd3dc9cad5ab05ac3c77e0645962f6bc6f90c213b0e4787b9ab8bedb8ec7',
-  TOKEN: '781b840751e0397da8afee1a869bd216e89001c9356b3b76b4dc8923fe42351f', // BET Token (50 supply)
+  TOKEN: 'b69e46517ba1d406fc7b372c2672c40a607eff048d5b8c5458ea5c9926b937a4', // BET Token with query support
   ORACLE: 'bd92f873e379c0b575c4605d7ad00ca15878f17e8438eaeb4897a70e5ed0d5bc',
-  MARKET: 'a58d1eb3f46f18a3c3ac93146df51787be23363709bf5f4f427908bb922e8905',
-  USER: 'dfcc282e744e3588372a9647659497af1319abad759e63313782e211f12f3b03',
+  MARKET: '9eb19c06766869e3b11e359d9bfd12df1fab7187e06c87a6de009f48297b9521',
+  USER: 'e3c20b9470a90964e56c6ef54ab4d09ab1ff2cf40e7fadbb20bf730cbaacf5fb',
   // AccountOwner for current deployment
   USER_ACCOUNT_OWNER: '0x243f5325625508178f5a545d084fb5167a376e429adcf58683d959300f4cff3e',
   // AccountOwner for Oracle Chain (same wallet owner)

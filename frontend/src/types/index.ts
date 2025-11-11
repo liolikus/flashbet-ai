@@ -1,7 +1,8 @@
 // FlashBet AI - TypeScript Types
 // Mirrors Rust types from Linera contracts
 
-export type MarketId = string;
+export type MarketId = string; // @deprecated - Use EventId as primary key
+export type EventId = string;
 export type ApplicationId = string;
 export type ChainId = string;
 export type Amount = string; // String representation of u128
@@ -27,7 +28,8 @@ export type MarketStatus = typeof MarketStatus[keyof typeof MarketStatus];
 
 // Bet structure
 export interface Bet {
-  marketId: MarketId;
+  eventId: EventId; // Primary key for multi-market architecture
+  marketId?: MarketId; // @deprecated - Legacy field
   user: ChainId;
   outcome: Outcome;
   amount: Amount;
@@ -37,8 +39,8 @@ export interface Bet {
 
 // Market Info
 export interface MarketInfo {
-  marketId: MarketId;
-  eventId: string;
+  eventId: EventId; // Primary key for multi-market architecture
+  marketId?: MarketId; // @deprecated - Legacy field
   description: string;
   closeTime: number;
   eventTime: number;
@@ -80,7 +82,7 @@ export interface DepositVariables {
 
 export interface PlaceBetVariables {
   marketChain: ChainId;
-  marketId: MarketId;
+  eventId: EventId; // Primary key for multi-market architecture
   outcome: Outcome;
   amount: Amount;
 }
@@ -101,7 +103,7 @@ export interface PublishResultVariables {
 // UI-specific types
 export interface MarketCardProps {
   market: MarketState;
-  onPlaceBet: (marketId: MarketId, outcome: Outcome, amount: Amount) => void;
+  onPlaceBet: (eventId: EventId, outcome: Outcome, amount: Amount) => void;
 }
 
 export interface BetFormData {

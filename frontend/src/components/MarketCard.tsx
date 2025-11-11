@@ -6,7 +6,7 @@ import { useToken } from '../contexts/TokenContext';
 
 interface MarketCardProps {
   market: MarketState;
-  onPlaceBet: (marketId: string, outcome: OutcomeType, amount: string) => Promise<void>;
+  onPlaceBet: (eventId: string, outcome: OutcomeType, amount: string) => Promise<void>;
   onCloseMarket: (eventId: string) => Promise<void>;
 }
 
@@ -25,7 +25,7 @@ export default function MarketCard({ market, onPlaceBet, onCloseMarket }: Market
 
     setPlacing(true);
     try {
-      await onPlaceBet(market.info.marketId, selectedOutcome, betAmount);
+      await onPlaceBet(market.info.eventId, selectedOutcome, betAmount);
       setBetAmount('');
       setSelectedOutcome(null);
     } catch (error) {
@@ -55,7 +55,7 @@ export default function MarketCard({ market, onPlaceBet, onCloseMarket }: Market
             <h3 className="text-base font-semibold" style={{ color: 'hsl(var(--heroui-foreground))' }}>
               {market.info.description}
             </h3>
-            <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>ID: {market.info.marketId}</p>
+            <p className="text-xs" style={{ color: 'hsl(var(--heroui-foreground-500))' }}>Event: {market.info.eventId}</p>
           </div>
           <div className="flex items-center gap-2">
             <span className={`status-${market.status.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>

@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { TokenProvider } from './contexts/TokenContext';
+import { AppProviders } from './contexts';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 
 function App() {
   return (
-    <TokenProvider>
+    <AppProviders>
       <Router>
         <Layout>
           <Routes>
@@ -13,7 +13,7 @@ function App() {
           </Routes>
         </Layout>
       </Router>
-    </TokenProvider>
+    </AppProviders>
   );
 }
 

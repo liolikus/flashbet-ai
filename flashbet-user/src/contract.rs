@@ -140,7 +140,7 @@ impl Contract for FlashbetUserContract {
                 let response = self
                     .runtime
                     .call_application::<flashbet_token::FlashbetTokenAbi>(
-                        false,
+                        true, // Forward authentication to BET token app
                         bet_token_id,
                         &transfer_operation,
                     );
@@ -205,7 +205,7 @@ impl Contract for FlashbetUserContract {
                 let response = self
                     .runtime
                     .call_application::<flashbet_token::FlashbetTokenAbi>(
-                        false,
+                        true, // Forward authentication to BET token app
                         bet_token_id,
                         &transfer_operation,
                     );
